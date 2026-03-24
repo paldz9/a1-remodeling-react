@@ -2,10 +2,11 @@
 
 .home1-page {
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
-  background-color: #f3f3f3;
+  background-color: #f2f2f3;
   margin: 0;
   padding: 0;
 }
+
 
 .hover-card {
   transition: transform 0.25s ease, box-shadow 0.3s ease;
