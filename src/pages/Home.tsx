@@ -3,8 +3,10 @@ import { Link } from 'react-router-dom';
 import './Home.css';
 import ChatWidget from '../components/ChatWidget';
 import Footer from '../components/Footer';
+import WelcomeForm from '../components/WelcomeForm';
 
 export default function Home() {
+  const [showWelcome, setShowWelcome] = useState(true);
   const [yearsCount, setYearsCount] = useState(0);
 
   const videoFloatRef  = useRef<HTMLDivElement>(null);
@@ -111,6 +113,7 @@ export default function Home() {
 
   return (
     <div className="home-main">
+      {showWelcome && <WelcomeForm onDismiss={() => setShowWelcome(false)} />}
 
       {/* ── HERO WRAP ── */}
       <div className="hero-wrap">

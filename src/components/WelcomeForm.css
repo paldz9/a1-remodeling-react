@@ -1,0 +1,348 @@
+/* ── OVERLAY ── */
+.wf-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ── BACKDROP VIDEO ── */
+.wf-backdrop {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+.wf-backdrop-dim {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  transition: background 0.6s ease;
+}
+
+.wf-backdrop-dim--darker {
+  background: rgba(0, 0, 0, 0.65);
+}
+
+/* ─────────────────────────────
+   STEP 1 — Card
+───────────────────────────── */
+.wf-card {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  width: min(900px, 95vw);
+  min-height: 520px;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 32px 80px rgba(0, 0, 0, 0.5);
+  background: #f2f0eb;
+}
+
+.wf-left {
+  position: relative;
+  flex: 1;
+  min-height: 460px;
+  overflow: hidden;
+}
+
+.wf-panel-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.wf-right {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 3rem 2.5rem;
+  background: #f2f0eb;
+}
+
+.wf-heading {
+  font-size: clamp(1.5rem, 2.5vw, 2rem);
+  font-weight: 800;
+  color: #111;
+  margin: 0 0 0.3rem;
+}
+
+.wf-subheading {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: #c8920a;
+  margin: 0 0 2.2rem;
+  text-transform: uppercase;
+}
+
+.wf-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.wf-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.wf-label {
+  font-size: 0.78rem;
+  color: #666;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+}
+
+.wf-input {
+  background: transparent;
+  border: none;
+  border-bottom: 1.5px solid #c8920a;
+  outline: none;
+  font-size: 1rem;
+  color: #111;
+  padding: 0.3rem 0;
+  transition: border-color 0.2s;
+}
+
+.wf-input:focus {
+  border-bottom-color: #111;
+}
+
+.wf-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.85rem;
+  color: #444;
+  cursor: pointer;
+  user-select: none;
+}
+
+.wf-checkbox {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  accent-color: #c8920a;
+  cursor: pointer;
+}
+
+.wf-btn {
+  background: #111;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 1rem;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  letter-spacing: 0.04em;
+  transition: background 0.2s;
+  margin-top: 0.5rem;
+}
+
+.wf-btn:hover {
+  background: #333;
+}
+
+.wf-skip {
+  background: none;
+  border: none;
+  color: #888;
+  font-size: 0.8rem;
+  text-decoration: underline;
+  cursor: pointer;
+  text-align: center;
+  margin-top: 1.2rem;
+  padding: 0;
+  transition: color 0.2s;
+}
+
+.wf-skip:hover {
+  color: #111;
+}
+
+/* ─────────────────────────────
+   STEP 2 — Full-screen question
+───────────────────────────── */
+.wf-step2 {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  width: min(620px, 92vw);
+}
+
+.wf-s2-hello {
+  font-size: clamp(2.2rem, 5vw, 3.5rem);
+  font-weight: 900;
+  color: #fff;
+  margin: 0 0 0.5rem;
+}
+
+.wf-s2-question {
+  font-size: clamp(0.85rem, 1.8vw, 1.05rem);
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  color: #d4a017;
+  margin: 0 0 2.8rem;
+  text-transform: uppercase;
+}
+
+/* ── Dropdown wrapper ── */
+.wf-dropdown-wrap {
+  position: relative;
+  width: 100%;
+  margin-bottom: 2rem;
+}
+
+/* ── Trigger field ── */
+.wf-dropdown-field {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 0;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.4);
+  cursor: pointer;
+  transition: border-color 0.2s;
+  user-select: none;
+}
+
+.wf-dropdown-field:hover,
+.wf-dropdown-field--open {
+  border-bottom-color: #d4a017;
+}
+
+.wf-dropdown-placeholder {
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.45);
+  font-style: italic;
+}
+
+.wf-dropdown-value {
+  font-size: 1rem;
+  color: #fff;
+  font-weight: 500;
+}
+
+.wf-dropdown-arrow {
+  color: rgba(255, 255, 255, 0.6);
+  flex-shrink: 0;
+  transition: transform 0.25s ease, color 0.2s;
+}
+
+.wf-dropdown-arrow--up {
+  transform: rotate(180deg);
+  color: #d4a017;
+}
+
+/* ── Options list ── */
+.wf-dropdown-list {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  z-index: 10;
+  background: rgba(15, 15, 15, 0.82);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  overflow-y: auto;
+  max-height: 260px;
+  scrollbar-width: none;
+  padding: 0.4rem 0;
+  animation: wf-drop-in 0.2s ease;
+}
+
+.wf-dropdown-list::-webkit-scrollbar {
+  display: none;
+}
+
+@keyframes wf-drop-in {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.wf-dropdown-item {
+  padding: 0.75rem 1.4rem;
+  font-size: 0.97rem;
+  color: #fff;
+  cursor: pointer;
+  text-align: left;
+  border-radius: 6px;
+  margin: 0 0.3rem;
+  transition: background 0.15s;
+}
+
+.wf-dropdown-item:hover {
+  background: rgba(212, 160, 23, 0.18);
+  opacity: 1 !important;
+}
+
+.wf-dropdown-item--active {
+  color: #d4a017;
+  font-weight: 600;
+}
+
+/* ── Gold continue button ── */
+.wf-btn-gold {
+  background: #d4a017;
+  color: #111;
+  border: none;
+  border-radius: 8px;
+  padding: 1rem 3rem;
+  font-size: 1.05rem;
+  font-weight: 800;
+  cursor: pointer;
+  letter-spacing: 0.05em;
+  min-width: 260px;
+  transition: background 0.2s, transform 0.1s, opacity 0.2s;
+}
+
+.wf-btn-gold:hover:not(:disabled) {
+  background: #e6b520;
+}
+
+.wf-btn-gold:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.wf-btn-gold:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.wf-s2-hint {
+  margin-top: 0.6rem;
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.4);
+  letter-spacing: 0.03em;
+}
+
+/* ── Responsive ── */
+@media (max-width: 620px) {
+  .wf-card {
+    flex-direction: column;
+    min-height: unset;
+  }
+
+  .wf-left {
+    min-height: 220px;
+  }
+
+  .wf-right {
+    padding: 2rem 1.5rem;
+  }
+}
