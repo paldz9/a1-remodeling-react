@@ -16,24 +16,18 @@ export default function HeroSlider() {
   const track = [...SLIDES, ...SLIDES]
 
   return (
-    <section style={{ margin: 0, padding: 0 }}>
+    <section style={{ margin: 0, paddingTop: 'calc(4rem + 0.75rem)' }}>
 
-      {/* Title image — exact last frame of Intro_title.mp4, same objectFit:cover
-          + 100vh sizing as the video for pixel-perfect seamless transition. */}
-      {/* Title stays at 100vh + objectFit:cover + center — identical to the video,
-          so the transition is pixel-perfect seamless. */}
-      <div style={{ width: '100%', height: '100vh', overflow: 'hidden' }}>
+      {/* width: 100% / height: auto — matches the video exactly at every viewport width */}
+      <div style={{ width: '100%' }}>
         <img
-          src="/title.jpg"
+          src="/Company Title_fixed.png"
           alt="A1 Home Remodeling Inc"
-          style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center', display: 'block' }}
+          style={{ width: '100%', height: 'auto', display: 'block' }}
         />
       </div>
 
-      {/* Slider is pulled UP with a negative margin so it starts just below
-          the title text. max(10vw, 18vh) scales correctly on both landscape
-          desktop and portrait mobile. */}
-      <div style={{ overflow: 'hidden', width: '100%', marginTop: 'calc(-100vh + max(10vw, 18vh))', position: 'relative' }}>
+      <div style={{ overflow: 'hidden', width: '100%', marginTop: '1.5rem', position: 'relative' }}>
         <div
           style={{
             display: 'flex',

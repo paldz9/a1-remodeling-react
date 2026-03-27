@@ -1,16 +1,80 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 
 interface Props {
   onEnd: () => void
 }
 
+const PHASE1_PORTRAIT = 2 + 5  / 30  // 2:05 — portrait hold end
+const PHASE1_WIDE     = 2 + 15 / 30  // 2:15 — wide screen hold end
+const PHASE2_END      = 3.0          // 3:00 — fully at original by here
+
 export default function IntroVideo({ onEnd }: Props) {
   const [fading, setFading] = useState(false)
+  const videoRef = useRef<HTMLVideoElement>(null)
+  const rafRef  = useRef<number>(0)
 
   function dismiss() {
     setFading(true)
     setTimeout(onEnd, 700)
   }
+
+  useEffect(() => {
+    const video = videoRef.current
+    if (!video) return
+
+    const remPx     = parseFloat(getComputedStyle(document.documentElement).fontSize)
+    const topOffset = 4.75 * remPx // 4rem navbar + 0.75rem gap
+
+    function animate() {
+      if (!video.duration || video.videoWidth === 0) {
+        video.style.transform = 'none'
+        rafRef.current = requestAnimationFrame(animate)
+        return
+      }
+
+      const aspectRatio          = video.videoWidth / video.videoHeight
+      const availableHeight      = window.innerHeight - topOffset
+      const videoHeightFullWidth = window.innerWidth / aspectRatio
+      const isWide               = videoHeightFullWidth > availableHeight
+      const t                    = video.currentTime
+
+      if (isWide) {
+        // ── Wide screen: scale video so its height fits the available area ──
+        // transform-origin: top center keeps the top edge fixed and centres
+        // the video horizontally as it scales.
+        const fittedScale = availableHeight / videoHeightFullWidth
+        video.style.transformOrigin = 'top center'
+
+        if (t <= PHASE1_WIDE) {
+          video.style.transform = `scale(${fittedScale})`
+        } else if (t >= PHASE2_END) {
+          video.style.transform = 'none'
+        } else {
+          const progress = (t - PHASE1_WIDE) / (PHASE2_END - PHASE1_WIDE)
+          const scale    = fittedScale + (1 - fittedScale) * progress
+          video.style.transform = `scale(${scale})`
+        }
+      } else {
+        // ── Portrait / normal screen: shift video so its centre is at 50vh ──
+        const centerOffset = (window.innerHeight - videoHeightFullWidth) / 2 - topOffset
+        video.style.transformOrigin = 'top center'
+
+        if (t <= PHASE1_PORTRAIT) {
+          video.style.transform = `translateY(${centerOffset}px)`
+        } else if (t >= PHASE2_END) {
+          video.style.transform = 'none'
+        } else {
+          const progress = (t - PHASE1_PORTRAIT) / (PHASE2_END - PHASE1_PORTRAIT)
+          video.style.transform = `translateY(${centerOffset * (1 - progress)}px)`
+        }
+      }
+
+      rafRef.current = requestAnimationFrame(animate)
+    }
+
+    rafRef.current = requestAnimationFrame(animate)
+    return () => cancelAnimationFrame(rafRef.current)
+  }, [])
 
   return (
     <div
@@ -24,16 +88,29 @@ export default function IntroVideo({ onEnd }: Props) {
         pointerEvents: fading ? 'none' : 'all',
       }}
     >
-      <video
-        autoPlay
-        muted
-        playsInline
-        onEnded={dismiss}
-        onError={dismiss}
-        style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+      {/* Clips video at the navbar bottom and viewport bottom */}
+      <div
+        style={{
+          position: 'absolute',
+          top: 'calc(4rem + 0.75rem)',
+          left: 0,
+          right: 0,
+          bottom: 0,
+          overflow: 'hidden',
+        }}
       >
-        <source src="/Intro_title.mp4" type="video/mp4" />
-      </video>
+        <video
+          ref={videoRef}
+          autoPlay
+          muted
+          playsInline
+          onEnded={dismiss}
+          onError={dismiss}
+          style={{ width: '100%', height: 'auto', display: 'block' }}
+        >
+          <source src="/Intro_title_2.mp4" type="video/mp4" />
+        </video>
+      </div>
     </div>
   )
 }
