@@ -1,24 +1,19 @@
 import { useState } from 'react'
 import Navbar from '../components/Navbar'
 import IntroVideo from '../components/IntroVideo'
-import TitleReveal from '../components/TitleReveal'
 import HeroSlider from '../components/HeroSlider'
 
-type Phase = 'intro' | 'title' | 'main'
-
 export default function Home() {
-  const [phase, setPhase] = useState<Phase>('intro')
+  const [introDone, setIntroDone] = useState(false)
 
   return (
     <div>
-      {phase === 'intro' && <IntroVideo onEnd={() => setPhase('title')} />}
-      {phase === 'title' && <TitleReveal onEnd={() => setPhase('main')} />}
-      {phase !== 'intro' && (
-        <>
-          <Navbar />
-          <HeroSlider />
-        </>
-      )}
+      {/* Navbar is hidden during the intro so it doesn't interfere with the
+          video-to-page pixel match. It fades in after the video ends. */}
+      <Navbar visible={introDone} />
+      <HeroSlider />
+
+      {!introDone && <IntroVideo onEnd={() => setIntroDone(true)} />}
     </div>
   )
 }

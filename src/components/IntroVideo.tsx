@@ -9,7 +9,7 @@ export default function IntroVideo({ onEnd }: Props) {
 
   function dismiss() {
     setFading(true)
-    setTimeout(onEnd, 600)
+    setTimeout(onEnd, 700)
   }
 
   return (
@@ -18,9 +18,9 @@ export default function IntroVideo({ onEnd }: Props) {
         position: 'fixed',
         inset: 0,
         zIndex: 9999,
-        background: '#000',
+        background: '#fff',
         opacity: fading ? 0 : 1,
-        transition: 'opacity 0.6s ease',
+        transition: 'opacity 0.7s ease',
         pointerEvents: fading ? 'none' : 'all',
       }}
     >
@@ -32,7 +32,7 @@ export default function IntroVideo({ onEnd }: Props) {
         onError={dismiss}
         style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
       >
-        <source src="/Intro.mp4" type="video/mp4" />
+        <source src="/Intro_title.mp4" type="video/mp4" />
       </video>
     </div>
   )

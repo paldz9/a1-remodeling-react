@@ -13,29 +13,27 @@ const SLIDES = [
 ]
 
 export default function HeroSlider() {
-  // Duplicate for seamless loop
   const track = [...SLIDES, ...SLIDES]
 
   return (
-    <section style={{ paddingTop: '64px' }}>
-      {/* Big heading */}
-      <div style={{ padding: '40px 32px 32px', textAlign: 'left' }}>
-        <h1 style={{
-          fontFamily: "'HelveticaNeue-CondensedBlack', 'Helvetica Neue', Helvetica, Arial, sans-serif",
-          fontWeight: 900,
-          fontSize: 'clamp(2.5rem, 8vw, 6rem)',
-          letterSpacing: '0.05em',
-          lineHeight: 1,
-          color: '#111',
-          textTransform: 'uppercase',
-          margin: 0,
-        }}>
-          A1 Home Remodeling Inc
-        </h1>
+    <section style={{ margin: 0, padding: 0 }}>
+
+      {/* Title image — exact last frame of Intro_title.mp4, same objectFit:cover
+          + 100vh sizing as the video for pixel-perfect seamless transition. */}
+      {/* Title stays at 100vh + objectFit:cover + center — identical to the video,
+          so the transition is pixel-perfect seamless. */}
+      <div style={{ width: '100%', height: '100vh', overflow: 'hidden' }}>
+        <img
+          src="/title.jpg"
+          alt="A1 Home Remodeling Inc"
+          style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center', display: 'block' }}
+        />
       </div>
 
-      {/* Sliding strip */}
-      <div style={{ overflow: 'hidden', width: '100%' }}>
+      {/* Slider is pulled UP with a negative margin so it starts just below
+          the title text. max(10vw, 18vh) scales correctly on both landscape
+          desktop and portrait mobile. */}
+      <div style={{ overflow: 'hidden', width: '100%', marginTop: 'calc(-100vh + max(10vw, 18vh))', position: 'relative' }}>
         <div
           style={{
             display: 'flex',

@@ -41,9 +41,12 @@ const OUR_WORK = [
 const linkClass = 'px-1 py-2 text-sm font-medium text-gray-500 hover:text-gray-900 transition-colors rounded-md hover:bg-gray-50 whitespace-nowrap'
 const triggerClass = 'px-1 py-2 text-sm font-medium text-gray-500 hover:text-gray-900 bg-transparent hover:bg-gray-50 data-[state=open]:bg-gray-50 data-[state=open]:text-gray-900 whitespace-nowrap'
 
-export default function Navbar() {
+export default function Navbar({ visible = true }: { visible?: boolean }) {
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 border-b border-gray-200 bg-white px-4 md:px-6">
+    <header
+      className="fixed top-0 left-0 right-0 z-50 border-b border-gray-200 bg-white px-4 md:px-6"
+      style={{ opacity: visible ? 1 : 0, transition: 'opacity 0.6s ease' }}
+    >
       <div className="flex h-16 items-center justify-center">
 
         {/* ── All items centered together ── */}
