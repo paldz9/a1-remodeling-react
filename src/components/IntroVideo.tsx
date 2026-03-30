@@ -18,6 +18,13 @@ export default function IntroVideo({ onEnd }: Props) {
     setTimeout(onEnd, 700)
   }
 
+  // Lock scroll during intro
+  useEffect(() => {
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => { document.body.style.overflow = prev }
+  }, [])
+
   useEffect(() => {
     const video = videoRef.current
     if (!video) return

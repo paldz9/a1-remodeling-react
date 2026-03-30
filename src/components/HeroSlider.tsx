@@ -10,6 +10,11 @@ const SLIDES = [
   '/Slide/img_13.avif',
   '/Slide/img_15.avif',
   '/Slide/img_18.avif',
+  '/Slide/6b5032_851a3a52b0234104b2a2fe0531b314b9~mv2.jpg',
+  '/Slide/6b5032_903f145a2f924efbb649c5edbda448db~mv2.jpg',
+  '/Slide/6b5032_a8964f0eae894e6383019c3ddee684f3~mv2.jpg',
+  '/Slide/6b5032_d870bfa869264a14a545258a13fcbe7f~mv2.jpg',
+  '/Slide/6b5032_f7a5a5f5a49b4c05815de9fdd42cd956~mv2.jpg',
 ]
 
 export default function HeroSlider() {
@@ -55,6 +60,15 @@ export default function HeroSlider() {
             </div>
           ))}
         </div>
+      </div>
+
+      <div style={{ padding: '2rem 44% 1rem 7%', fontFamily: "'Poppins', sans-serif" }}>
+        <p style={{ marginBottom: '0.5rem', lineHeight: '1.65', fontSize: '0.95rem', fontWeight: 400 }}>
+          At <strong style={{ fontWeight: 700 }}>A1 Home Remodeling Inc.,</strong> we believe a home is more than walls and roofs. It is where memories are made and life happens. That is why we treat every project with genuine care, attention, and respect for your vision.
+        </p>
+        <p style={{ lineHeight: '1.65', fontSize: '0.95rem', fontWeight: 400 }}>
+          We listen, we understand, and we build with heart. When you choose us, you are not just getting a service, you are gaining a team that truly cares. Reach out today and let us bring your ideas to life.
+        </p>
       </div>
 
       <style>{`
