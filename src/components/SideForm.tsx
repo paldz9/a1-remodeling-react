@@ -71,7 +71,7 @@ const LABEL = 'Book Now'
 function easeInOut(t: number) { return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t }
 function easeOut(t: number) { return 1 - Math.pow(1 - t, 3) }
 
-function SideBookButton({ visible }: { visible: boolean }) {
+function SideBookButton({ visible, formId }: { visible: boolean; formId: string }) {
   const [text, setText] = useState(LABEL)
   const btnRef = useRef<HTMLButtonElement>(null)
   const scrambleRef = useRef<number | null>(null)
@@ -113,7 +113,7 @@ function SideBookButton({ visible }: { visible: boolean }) {
 
   return (
     <SlideRow delay={400} visible={visible}>
-      <button ref={btnRef} type="submit"
+      <button ref={btnRef} type="submit" form={formId}
         onMouseEnter={() => {
           scramble()
           const maxR = btnRef.current ? Math.ceil(btnRef.current.offsetHeight / 2) : 20
@@ -149,10 +149,38 @@ export default function SideForm({ visible }: Props) {
   const whiteRef   = useRef<HTMLDivElement>(null)
   const blackRef   = useRef<HTMLDivElement>(null)
   const contentRef = useRef<HTMLDivElement>(null)
+  const scrollRef  = useRef<HTMLDivElement>(null)
+  const outerRef   = useRef<HTMLDivElement>(null)
+
+  // Capture-phase wheel handler on the outer wrapper — fires before useSmoothScroll's
+  // bubble-phase window listener, guaranteed. stopPropagation kills the event there.
+  useEffect(() => {
+    const outer = outerRef.current
+    const scroller = scrollRef.current
+    if (!outer || !scroller) return
+    const onWheel = (e: WheelEvent) => {
+      const delta = e.deltaMode === 1 ? e.deltaY * 40 : e.deltaMode === 2 ? e.deltaY * 400 : e.deltaY
+
+      const atTop    = scroller.scrollTop <= 0
+      const atBottom = scroller.scrollTop + scroller.clientHeight >= scroller.scrollHeight - 1
+      const goingUp  = delta < 0
+      const goingDown = delta > 0
+
+      const canScroll = (goingUp && !atTop) || (goingDown && !atBottom)
+
+      if (canScroll) {
+        e.stopPropagation()
+        e.preventDefault()
+        scroller.scrollTop += delta
+      }
+    }
+    outer.addEventListener('wheel', onWheel, { passive: false, capture: true })
+    return () => outer.removeEventListener('wheel', onWheel, { capture: true })
+  }, [])
 
   // Set initial off-screen position before first paint so React never overwrites it
   useLayoutEffect(() => {
-    ;[grayRef, whiteRef, blackRef].forEach(r => {
+    ;[grayRef, whiteRef, blackRef, contentRef].forEach(r => {
       if (r.current) r.current.style.transform = 'translateX(101%)'
     })
   }, [])
@@ -160,20 +188,12 @@ export default function SideForm({ visible }: Props) {
   useEffect(() => {
     let raf1: number, raf2: number
     let t1: ReturnType<typeof setTimeout>
-    let t2: ReturnType<typeof setTimeout>
 
     if (visible) {
-      // Reset content position (it may have slid out last time)
-      if (contentRef.current) {
-        contentRef.current.style.transition = 'none'
-        contentRef.current.style.transform = 'translateX(0)'
-      }
       setContentVisible(true)
 
-      // Force all panels to off-screen start position with no transition
-      // (panels already start at translateX(101%) via inline style,
-      //  but we re-assert it here in case of re-entry after exit)
-      ;[grayRef, whiteRef, blackRef].forEach(r => {
+      // Force all panels + content to off-screen start position with no transition
+      ;[grayRef, whiteRef, blackRef, contentRef].forEach(r => {
         if (!r.current) return
         r.current.style.transition = 'none'
         r.current.style.transform = 'translateX(101%)'
@@ -195,11 +215,15 @@ export default function SideForm({ visible }: Props) {
             blackRef.current.style.transition = `transform 0.6s ${EASE} 0.24s`
             blackRef.current.style.transform = 'translateX(0)'
           }
+          if (contentRef.current) {
+            contentRef.current.style.transition = `transform 0.6s ${EASE} 0.24s`
+            contentRef.current.style.transform = 'translateX(0)'
+          }
         })
       })
 
-      // Reveal form content after all panels have landed
-      t1 = setTimeout(() => setContentIn(true), 900)
+      // Reveal form content slightly before panels fully land
+      t1 = setTimeout(() => setContentIn(true), 650)
     } else {
       // Exit: slide content out together with the black panel
       if (contentRef.current) {
@@ -230,7 +254,6 @@ export default function SideForm({ visible }: Props) {
       cancelAnimationFrame(raf1)
       cancelAnimationFrame(raf2)
       clearTimeout(t1)
-      clearTimeout(t2)
     }
   }, [visible])
 
@@ -239,9 +262,14 @@ export default function SideForm({ visible }: Props) {
     position: 'absolute', top: 0, right: 0,
     width: '100%', height: '100%',
   }
+  // Black panel and content are 2px narrower on the left,
+  // leaving the white panel's edge visible as a divider line
+  const innerPanelBase: React.CSSProperties = {
+    position: 'absolute', top: 0, right: 0, left: '2px', height: '100%',
+  }
 
   return (
-    <div style={{
+    <div ref={outerRef} data-scroll-independent style={{
       position: 'fixed',
       top: '64px', right: 0,
       height: 'calc(100vh - 64px)',
@@ -252,88 +280,100 @@ export default function SideForm({ visible }: Props) {
     }}>
       <div ref={grayRef}  style={{ ...panelBase, backgroundColor: '#888888', zIndex: 1 }} />
       <div ref={whiteRef} style={{ ...panelBase, backgroundColor: '#ffffff',  zIndex: 2 }} />
-      <div ref={blackRef} style={{ ...panelBase, backgroundColor: '#1a1a1a',  zIndex: 3 }} />
+      <div ref={blackRef} style={{ ...innerPanelBase, backgroundColor: '#1a1a1a', zIndex: 3 }} />
 
       <div ref={contentRef} style={{
-        ...panelBase,
+        ...innerPanelBase,
         zIndex: 4,
         display: 'flex', flexDirection: 'column',
         visibility: contentVisible ? 'visible' : 'hidden',
         backgroundColor: '#000000',
-        padding: '1.5rem',
-        overflow: 'hidden',
-        // Content starts at translateX(0) — it exits by being slid out via ref
-        transform: 'translateX(0)',
       }}>
-        {/* Heading */}
-        <div style={{ overflow: 'hidden', flexShrink: 0, marginBottom: '1rem' }}>
-          <h2 style={{
-            fontFamily: FONT, fontWeight: 700, fontSize: '1.5rem',
-            color: '#ffffff', margin: 0, lineHeight: 1.3,
-            transform: contentIn ? 'translateY(0) rotate(0deg)' : 'translateY(120%) rotate(8deg)',
-            transition: `transform 0.65s ${EASE} 0ms`,
-            transformOrigin: 'left bottom',
-          }}>
-            Let's bring your<br />home to life.
-          </h2>
+        {/* Scrollable area: heading + video + form fields */}
+        <div
+          ref={scrollRef}
+          data-inner-scroll
+          className="sideform-scroll"
+          style={{
+            flex: 1,
+            minHeight: 0,
+            overflowY: 'auto',
+            overscrollBehavior: 'contain',
+            scrollbarWidth: 'none',
+            padding: '1.5rem 1.5rem 0',
+          }}
+        >
+          {/* Heading */}
+          <div style={{ overflow: 'hidden', marginBottom: '1rem' }}>
+            <h2 style={{
+              fontFamily: FONT, fontWeight: 700, fontSize: '1.5rem',
+              color: '#ffffff', margin: 0, lineHeight: 1.3,
+              transform: contentIn ? 'translateY(0) rotate(0deg)' : 'translateY(120%) rotate(8deg)',
+              transition: `transform 0.65s ${EASE} 0ms`,
+              transformOrigin: 'left bottom',
+            }}>
+              Let's bring your<br />home to life.
+            </h2>
+          </div>
+
+          {/* Video — 1:1 card, no crop */}
+          <SlideRow delay={40} visible={contentIn} style={{ marginBottom: '1rem' }}>
+            <div style={{ borderRadius: '12px', overflow: 'hidden', aspectRatio: '1 / 1', backgroundColor: '#000', width: '100%' }}>
+              <video autoPlay muted loop playsInline
+                style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }}
+                src="/form-welcome.mp4"
+              />
+            </div>
+          </SlideRow>
+
+          {/* Form fields */}
+          <form id="sideform" onSubmit={e => e.preventDefault()} style={{ display: 'flex', flexDirection: 'column' }}>
+
+            <SlideRow delay={0} visible={contentIn} style={{ marginBottom: '0.85rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem' }}>
+                <Field label="First Name*" type="text" />
+                <Field label="Last Name*" type="text" />
+              </div>
+            </SlideRow>
+
+            <SlideRow delay={80} visible={contentIn} style={{ marginBottom: '0.85rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem' }}>
+                <Field label="Email*" type="email" />
+                <Field label="Phone*" type="tel" />
+              </div>
+            </SlideRow>
+
+            <SlideRow delay={160} visible={contentIn} style={{ marginBottom: '0.85rem' }}>
+              <Field label="Address*" type="text" />
+            </SlideRow>
+
+            <SlideRow delay={240} visible={contentIn} style={{ marginBottom: '0.85rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem' }}>
+                <Field label="Zip/Postal Code*" type="text" />
+                <SelectField label="Budget Range" options={BUDGET_OPTIONS} />
+              </div>
+            </SlideRow>
+
+            <SlideRow delay={320} visible={contentIn} style={{ marginBottom: '0.85rem' }}>
+              <TextareaField label="Messages /Notes*" />
+            </SlideRow>
+
+          </form>
         </div>
 
-        {/* Video — 1:1 card, no crop */}
-        <SlideRow delay={40} visible={contentIn} style={{ flexShrink: 0, marginBottom: '1rem' }}>
-          <div style={{ borderRadius: '12px', overflow: 'hidden', aspectRatio: '1 / 1', backgroundColor: '#000', width: '100%' }}>
-            <video autoPlay muted loop playsInline
-              style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }}
-              src="/form-welcome.mp4"
-            />
-          </div>
-        </SlideRow>
-
-        {/* Form fields */}
-        <form onSubmit={e => e.preventDefault()} style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden' }}>
-
-          <SlideRow delay={0} visible={contentIn} style={{ marginBottom: '0.85rem' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem' }}>
-              <Field label="First Name*" type="text" />
-              <Field label="Last Name*" type="text" />
-            </div>
+        {/* Sticky bottom: button + disclaimer, always visible above scroll */}
+        <div style={{ flexShrink: 0, padding: '0.75rem 1.5rem 1.5rem' }}>
+          <SideBookButton visible={contentIn} formId="sideform" />
+          <SlideRow delay={480} visible={contentIn}>
+            <p style={{
+              fontFamily: FONT, fontWeight: 300, fontSize: '0.7rem',
+              color: 'rgba(255,255,255,0.4)', textAlign: 'right',
+              marginTop: '0.5rem', marginBottom: 0,
+            }}>
+              Please expect a call after filling out this form.
+            </p>
           </SlideRow>
-
-          <SlideRow delay={80} visible={contentIn} style={{ marginBottom: '0.85rem' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem' }}>
-              <Field label="Email*" type="email" />
-              <Field label="Phone*" type="tel" />
-            </div>
-          </SlideRow>
-
-          <SlideRow delay={160} visible={contentIn} style={{ marginBottom: '0.85rem' }}>
-            <Field label="Address*" type="text" />
-          </SlideRow>
-
-          <SlideRow delay={240} visible={contentIn} style={{ marginBottom: '0.85rem' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem' }}>
-              <Field label="Zip/Postal Code*" type="text" />
-              <SelectField label="Budget Range" options={BUDGET_OPTIONS} />
-            </div>
-          </SlideRow>
-
-          <SlideRow delay={320} visible={contentIn} style={{ marginBottom: '0.85rem' }}>
-            <TextareaField label="Messages /Notes*" />
-          </SlideRow>
-
-          <div style={{ marginTop: 'auto' }}>
-            <SideBookButton visible={contentIn} />
-            <SlideRow delay={480} visible={contentIn}>
-              <p style={{
-                fontFamily: FONT, fontWeight: 300, fontSize: '0.7rem',
-                color: 'rgba(255,255,255,0.4)', textAlign: 'right',
-                marginTop: '0.5rem', marginBottom: 0,
-              }}>
-                Please expect a call after filling out this form.
-              </p>
-            </SlideRow>
-          </div>
-
-        </form>
+        </div>
       </div>
     </div>
   )

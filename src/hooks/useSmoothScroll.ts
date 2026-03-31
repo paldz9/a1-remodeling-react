@@ -9,6 +9,10 @@ export function useSmoothScroll() {
 
     const onWheel = (e: WheelEvent) => {
       if (document.body.style.overflow === 'hidden') return
+
+      // If the event originated inside an independent scroll panel, leave it alone
+      if ((e.target as HTMLElement)?.closest('[data-scroll-independent]')) return
+
       e.preventDefault()
       target += e.deltaY
       target = Math.max(0, Math.min(target, document.body.scrollHeight - window.innerHeight))
