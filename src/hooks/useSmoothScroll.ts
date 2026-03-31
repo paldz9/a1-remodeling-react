@@ -1,31 +1,36 @@
-import { useEffect } from 'react'
+import { useEffect, useRef, useCallback } from 'react'
 
 export function useSmoothScroll() {
+  const stateRef = useRef({ current: window.scrollY, target: window.scrollY })
+
+  const jumpTo = useCallback((y: number) => {
+    stateRef.current.current = y
+    stateRef.current.target = y
+    window.scrollTo(0, y)
+  }, [])
+
   useEffect(() => {
-    let current = window.scrollY
-    let target = window.scrollY
+    const state = stateRef.current
     let rafId: number | null = null
     const ease = 0.08
 
     const onWheel = (e: WheelEvent) => {
       if (document.body.style.overflow === 'hidden') return
-
-      // If the event originated inside an independent scroll panel, leave it alone
       if ((e.target as HTMLElement)?.closest('[data-scroll-independent]')) return
 
       e.preventDefault()
-      target += e.deltaY
-      target = Math.max(0, Math.min(target, document.body.scrollHeight - window.innerHeight))
+      state.target += e.deltaY
+      state.target = Math.max(0, Math.min(state.target, document.body.scrollHeight - window.innerHeight))
     }
 
     const loop = () => {
-      const diff = target - current
+      const diff = state.target - state.current
       if (Math.abs(diff) < 0.5) {
-        current = target
+        state.current = state.target
       } else {
-        current += diff * ease
+        state.current += diff * ease
       }
-      window.scrollTo(0, current)
+      window.scrollTo(0, state.current)
       rafId = requestAnimationFrame(loop)
     }
 
@@ -37,4 +42,10 @@ export function useSmoothScroll() {
       if (rafId) cancelAnimationFrame(rafId)
     }
   }, [])
+
+  const scrollTo = useCallback((y: number) => {
+    stateRef.current.target = Math.max(0, Math.min(y, document.body.scrollHeight - window.innerHeight))
+  }, [])
+
+  return { jumpTo, scrollTo }
 }
