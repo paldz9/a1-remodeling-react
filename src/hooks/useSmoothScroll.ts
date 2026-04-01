@@ -2,6 +2,7 @@ import { useEffect, useRef, useCallback } from 'react'
 
 export function useSmoothScroll() {
   const stateRef = useRef({ current: window.scrollY, target: window.scrollY })
+  const maxTargetRef = useRef<number | null>(null)  // when set, wheel can't push target past this
 
   const jumpTo = useCallback((y: number) => {
     stateRef.current.current = y
@@ -9,21 +10,35 @@ export function useSmoothScroll() {
     window.scrollTo(0, y)
   }, [])
 
+  // Lock the scroll target at exactly y — wheel events cannot push past it
+  const lockAt = useCallback((y: number) => {
+    maxTargetRef.current = y
+    stateRef.current.target = y
+  }, [])
+
+  // Release the lock — wheel events flow freely again
+  const unlock = useCallback(() => {
+    maxTargetRef.current = null
+  }, [])
+
   useEffect(() => {
     const state = stateRef.current
     let rafId: number | null = null
-    // Exponential ease-out lerp — higher = snappier, lower = more float
-    const ease = 0.09
+    const ease = 0.07
 
     const onWheel = (e: WheelEvent) => {
       if (document.body.style.overflow === 'hidden') return
       if ((e.target as HTMLElement)?.closest('[data-scroll-independent]')) return
 
       e.preventDefault()
-      // Normalise delta across pixel / line / page modes for consistent speed
       const delta = e.deltaMode === 1 ? e.deltaY * 40 : e.deltaMode === 2 ? e.deltaY * 400 : e.deltaY
       state.target += delta
       state.target = Math.max(0, Math.min(state.target, document.body.scrollHeight - window.innerHeight))
+
+      // If locked, clamp target so wheel cannot push past the lock position
+      if (maxTargetRef.current !== null) {
+        state.target = Math.min(state.target, maxTargetRef.current)
+      }
     }
 
     const loop = () => {
@@ -50,5 +65,5 @@ export function useSmoothScroll() {
     stateRef.current.target = Math.max(0, Math.min(y, document.body.scrollHeight - window.innerHeight))
   }, [])
 
-  return { jumpTo, scrollTo }
+  return { jumpTo, scrollTo, lockAt, unlock }
 }
