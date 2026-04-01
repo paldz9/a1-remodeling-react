@@ -7,6 +7,8 @@ import ContactBar from '../components/ContactBar'
 import BookNowPanel from '../components/BookNowPanel'
 import SideForm from '../components/SideForm'
 
+const EASE = 'cubic-bezier(0.65, 0.01, 0.05, 0.99)'
+
 function easeInOut(t: number) { return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t }
 
 export default function Home() {
@@ -22,6 +24,7 @@ export default function Home() {
   const [scale, setScale] = useState(1)
   const [navInverted, setNavInverted] = useState(false)
   const [section3Progress, setSection3Progress] = useState(0)
+  const [section4Progress, setSection4Progress] = useState(0)
   const [mapRect, setMapRect] = useState<{ top: number; left: number; width: number; height: number } | null>(null)
 
   useEffect(() => {
@@ -50,6 +53,12 @@ export default function Home() {
       const newS3 = Math.min(Math.max((scrolled - s3Start) / s3Range, 0), 1)
       setSection3Progress(newS3)
 
+      // Section 4: enters at scrollY = 3vh-128, fully in at 4vh-192
+      const s4Start = vh * 3 - 128
+      const s4Range = vh - 64
+      const newS4 = Math.min(Math.max((scrolled - s4Start) / s4Range, 0), 1)
+      setSection4Progress(newS4)
+
       // Re-measure placeholder after section 2 sticks
       if (mapPlaceholderRef.current) {
         const r = mapPlaceholderRef.current.getBoundingClientRect()
@@ -77,6 +86,10 @@ export default function Home() {
 
   // Eased progress for smooth map & section2 animation
   const ep = easeInOut(section3Progress)
+
+  // Section 4 entrance
+  const ep4 = easeInOut(section4Progress)
+  const section4Entered = section4Progress > 0.05
 
   const animMap = {
     top:    src.top    + ep * (64       - src.top),
@@ -213,6 +226,148 @@ export default function Home() {
           }}>
             For every service we offer, our experienced professionals handle each project with care, precision, and attention to detail. Share your vision with us, and we will do everything we can to bring it to life.
           </p>
+        </div>
+      </div>
+
+      {/* Section 4 scroll space */}
+      <div style={{ height: '100vh' }} />
+
+      {/* Section 4 — 23 Years of Experience
+          Structure (matches reference):
+            ┌────────────────────────────────────────────────────┐
+            │  text column (40%)  │  Roof Shingles image (60%)  │  ← top row, ~60% of height
+            ├─────────────────────┴─────────────────────────────┤
+            │              gap (~1.5vh, black)                   │
+            ├────────────────────────────────────────────────────┤
+            │         Window.jpg full-width banner               │  ← bottom, flex:1
+            └────────────────────────────────────────────────────┘
+          Window is NOT inside the right column — it spans under both columns. */}
+      <div style={{
+        position: 'sticky', top: '64px', zIndex: 36,
+        backgroundColor: '#000000', height: 'calc(100vh - 64px)',
+        overflow: 'hidden', display: 'flex', flexDirection: 'column',
+      }}>
+        {/* Content wrapper: width shrinks when side form opens */}
+        <div style={{
+          display: 'flex', flexDirection: 'column',
+          width: navInverted ? 'calc(100% - 420px)' : '100%',
+          height: '100%',
+          overflow: 'hidden',
+          transition: `width 0.6s ${EASE} 0.24s`,
+        }}>
+
+          {/* ── TOP ROW: text left + Roof Shingles right ── */}
+          <div style={{
+            flex: '0 0 50%',
+            display: 'flex',
+            paddingTop: '8vh',
+          }}>
+
+            {/* Left: text column — left edge at 4rem, right stops before image */}
+            <div style={{
+              flex: '0 0 40%',
+              display: 'flex', flexDirection: 'column',
+              justifyContent: 'space-between',
+              padding: '0 4rem 0 4rem',
+            }}>
+              <div>
+                <div style={{ overflow: 'hidden' }}>
+                  <div style={{
+                    fontFamily: "'HelveticaLTPro-Bold', 'Helvetica Neue', Helvetica, Arial, sans-serif",
+                    fontWeight: 700,
+                    fontSize: 'min(2.8vw, 4.98vh)',
+                    color: '#ffffff',
+                    lineHeight: 1.05, letterSpacing: '-0.01em',
+                    transform: section4Entered ? 'translateY(0) rotate(0deg)' : 'translateY(115%) rotate(4deg)',
+                    opacity: section4Entered ? 1 : 0,
+                    transition: `transform 0.85s ${EASE} 0ms, opacity 0.5s ease 0ms`,
+                    transformOrigin: 'left bottom',
+                  }}>23 YEARS</div>
+                </div>
+                <div style={{ overflow: 'hidden', marginBottom: '1.4vh' }}>
+                  <div style={{
+                    fontFamily: "'HelveticaLTPro-Bold', 'Helvetica Neue', Helvetica, Arial, sans-serif",
+                    fontWeight: 700,
+                    fontSize: 'min(2.8vw, 4.98vh)',
+                    color: '#ffffff',
+                    lineHeight: 1.05, letterSpacing: '-0.01em',
+                    transform: section4Entered ? 'translateY(0) rotate(0deg)' : 'translateY(115%) rotate(4deg)',
+                    opacity: section4Entered ? 1 : 0,
+                    transition: `transform 0.85s ${EASE} 0.07s, opacity 0.5s ease 0.07s`,
+                    transformOrigin: 'left bottom',
+                  }}>OF EXPERIENCE</div>
+                </div>
+                <div style={{ overflow: 'hidden' }}>
+                  <div style={{
+                    fontFamily: "'HelveticaLTPro-Bold', 'Helvetica Neue', Helvetica, Arial, sans-serif",
+                    fontWeight: 700,
+                    fontSize: 'min(1.05vw, 1.87vh)',
+                    color: '#ffffff',
+                    lineHeight: 1.3,
+                    transform: section4Entered ? 'translateY(0) rotate(0deg)' : 'translateY(115%) rotate(4deg)',
+                    opacity: section4Entered ? 1 : 0,
+                    transition: `transform 0.85s ${EASE} 0.16s, opacity 0.5s ease 0.16s`,
+                    transformOrigin: 'left bottom',
+                  }}>Licensed, Bonded, and Insured</div>
+                </div>
+              </div>
+
+              {/* Body — pushed to bottom of top row */}
+              <p style={{
+                fontFamily: "'Poppins', sans-serif", fontWeight: 400,
+                fontSize: 'min(0.82vw, 1.46vh)',
+                color: 'rgba(255,255,255,0.7)', lineHeight: 1.85,
+                margin: 0,
+                opacity: section4Entered ? 1 : 0,
+                transform: section4Entered ? 'translateY(0)' : 'translateY(24px)',
+                transition: `opacity 0.9s ease 0.3s, transform 0.9s ${EASE} 0.3s`,
+              }}>
+                With over two decades of experience, we have built more than just homes, we have built lasting trust with every client we serve. Our commitment to quality, safety, and excellence is reflected in every detail of our work. As a licensed, bonded, and insured company, we provide peace of mind knowing your home is in capable and reliable hands. We take pride in delivering results that stand the test of time.
+              </p>
+            </div>
+
+            {/* Right: Roof Shingles — left gap from text, flush to content wrapper right edge (no right padding) */}
+            <div style={{ flex: 1, paddingLeft: '2rem', overflow: 'hidden' }}>
+              <div style={{ width: '100%', height: '100%', overflow: 'hidden', borderRadius: '6px' }}>
+                <img
+                  src="/Roof Shingles.png"
+                  alt="Roof shingles"
+                  style={{
+                    width: '100%', height: '100%',
+                    objectFit: 'cover', objectPosition: 'center center',
+                    display: 'block',
+                    transform: section4Entered ? 'translateX(0)' : 'translateX(100px)',
+                    opacity: section4Entered ? 1 : 0,
+                    transition: `transform 1.0s ${EASE} 0.05s, opacity 0.7s ease 0.05s`,
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* ── MIDDLE HORIZONTAL GAP ── */}
+          <div style={{ flexShrink: 0, height: '3vh' }} />
+
+          {/* ── BOTTOM: Window.jpg banner ──
+              Right padding = gap between banner and side form.
+              Bottom padding lifts it off the section floor. */}
+          <div style={{ flex: 1, padding: '0 3rem 3vh 0', overflow: 'hidden' }}>
+            <div style={{ width: '100%', height: '100%', overflow: 'hidden' }}>
+              <img
+                src="/Window.jpg"
+                alt="Window installation"
+                style={{
+                  width: '100%', height: '100%',
+                  objectFit: 'cover', objectPosition: 'center 40%',
+                  display: 'block',
+                  transform: section4Entered ? 'translateX(0)' : 'translateX(-100px)',
+                  opacity: section4Entered ? 1 : 0,
+                  transition: `transform 1.0s ${EASE} 0.2s, opacity 0.7s ease 0.2s`,
+                }}
+              />
+            </div>
+          </div>
+
         </div>
       </div>
 
