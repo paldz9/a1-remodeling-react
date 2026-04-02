@@ -49,6 +49,8 @@ export default function AboutUs() {
         inverted={false}
         onHome={() => navigate('/')}
         onAbout={() => {}}
+        onProducts={() => navigate('/products')}
+        onOurWork={() => navigate('/our-work')}
         onContact={() => navigate('/')}
       />
 
@@ -174,7 +176,9 @@ export default function AboutUs() {
           entered={footerEntered}
           onHome={() => navigate('/')}
           onAbout={() => {}}
-          onContact={() => { scrollTo(window.innerHeight * 1.2) }}
+          onProducts={() => navigate('/products')}
+          onOurWork={() => navigate('/our-work')}
+          onContact={() => scrollTo(window.innerHeight * 1.2)}
           onBookNow={() => navigate('/')}
         />
       </div>

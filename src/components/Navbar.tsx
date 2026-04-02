@@ -140,7 +140,7 @@ function BookOnlineButton({ onClick, inverted = false }: { onClick?: () => void;
   )
 }
 
-export default function Navbar({ visible = true, bare = false, onBookNow, onContact, onHome, onAbout, inverted = false }: { visible?: boolean; bare?: boolean; onBookNow?: () => void; onContact?: () => void; onHome?: () => void; onAbout?: () => void; inverted?: boolean }) {
+export default function Navbar({ visible = true, bare = false, onBookNow, onContact, onHome, onAbout, onProducts, onOurWork, inverted = false }: { visible?: boolean; bare?: boolean; onBookNow?: () => void; onContact?: () => void; onHome?: () => void; onAbout?: () => void; onProducts?: () => void; onOurWork?: () => void; inverted?: boolean }) {
   const bg = bare ? '#000000' : inverted ? '#111111' : '#ffffff'
   const border = inverted ? '#333333' : '#e5e7eb'
   const text = inverted ? '#ffffff' : '#111111'
@@ -187,9 +187,10 @@ export default function Navbar({ visible = true, bare = false, onBookNow, onCont
                 </NavigationMenuLink>
               </NavigationMenuItem>
 
-              {/* Products — Features style (title + description) */}
+              {/* Products — dropdown */}
               <NavigationMenuItem>
-                <NavigationMenuTrigger className={cn(triggerClass)} style={{ color: muted, transition: 'color 0.5s ease' }}>
+                <NavigationMenuTrigger className={cn(triggerClass)} style={{ color: muted, transition: 'color 0.5s ease' }}
+                  onClick={onProducts ? () => onProducts() : undefined}>
                   Products
                 </NavigationMenuTrigger>
                 <NavigationMenuContent>
@@ -201,6 +202,7 @@ export default function Navbar({ visible = true, bare = false, onBookNow, onCont
                             href={item.href}
                             className="block select-none rounded-lg transition-colors"
                             style={{ padding: '14px 16px', marginBottom: '2px' }}
+                            onClick={onProducts ? (e => { e.preventDefault(); onProducts() }) : undefined}
                             onMouseEnter={e => (e.currentTarget.style.backgroundColor = inverted ? '#2a2a2a' : '#f9fafb')}
                             onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}
                           >
@@ -218,11 +220,12 @@ export default function Navbar({ visible = true, bare = false, onBookNow, onCont
             <NavigationMenuViewport className={inverted ? '!bg-[#1a1a1a] !border-[#333]' : ''} />
           </NavigationMenu>
 
-          {/* Our Work — own NavigationMenu so viewport centers under its trigger */}
+          {/* Our Work — dropdown */}
           <NavigationMenu>
             <NavigationMenuList>
               <NavigationMenuItem>
-                <NavigationMenuTrigger className={cn(triggerClass)} style={{ color: muted, transition: 'color 0.5s ease' }}>
+                <NavigationMenuTrigger className={cn(triggerClass)} style={{ color: muted, transition: 'color 0.5s ease' }}
+                  onClick={onOurWork ? () => onOurWork() : undefined}>
                   Our Work
                 </NavigationMenuTrigger>
                 <NavigationMenuContent>
@@ -234,6 +237,7 @@ export default function Navbar({ visible = true, bare = false, onBookNow, onCont
                             href={item.href}
                             className="block select-none rounded-md transition-colors whitespace-nowrap"
                             style={{ padding: '10px 16px', fontSize: '14px', fontWeight: 500, color: inverted ? 'rgba(255,255,255,0.8)' : '#374151', marginBottom: '2px' }}
+                            onClick={onOurWork ? (e => { e.preventDefault(); onOurWork() }) : undefined}
                             onMouseEnter={e => (e.currentTarget.style.backgroundColor = inverted ? '#2a2a2a' : '#f9fafb')}
                             onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}
                           >

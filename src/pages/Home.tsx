@@ -175,7 +175,7 @@ export default function Home() {
 
   return (
     <div>
-      <Navbar visible={introDone} bare={section5Active} onBookNow={() => setBookNowOpen(true)} onContact={() => { const vh = window.innerHeight; scrollTo(vh * 6 - 256) }} onHome={() => scrollTo(0)} onAbout={() => navigate('/about')} inverted={navInverted} />
+      <Navbar visible={introDone} bare={section5Active} onBookNow={() => setBookNowOpen(true)} onContact={() => { const vh = window.innerHeight; scrollTo(vh * 6 - 256) }} onHome={() => scrollTo(0)} onAbout={() => navigate('/about')} onProducts={() => navigate('/products')} onOurWork={() => navigate('/our-work')} inverted={navInverted} />
 
       {/* Scroll space for section 1 */}
       <div style={{ height: '100vh' }} />
@@ -467,6 +467,8 @@ export default function Home() {
           entered={section5Entered}
           onHome={() => scrollTo(0)}
           onAbout={() => navigate('/about')}
+          onProducts={() => navigate('/products')}
+          onOurWork={() => navigate('/our-work')}
           onContact={() => { const vh = window.innerHeight; scrollTo(vh * 6 - 256) }}
           onBookNow={() => setBookNowOpen(true)}
         />
