@@ -12,6 +12,16 @@ dist
 dist-ssr
 *.local
 
+# Media assets (large binary files)
+public/*.mp4
+public/*.mov
+public/*.avif
+public/*.png
+public/*.jpg
+public/*.jpeg
+public/*.webp
+public/Slide/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

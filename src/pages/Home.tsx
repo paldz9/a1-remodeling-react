@@ -1,322 +1,524 @@
-import { useEffect, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
-import './Home.css';
-import ChatWidget from '../components/ChatWidget';
-import Footer from '../components/Footer';
+import { useState, useEffect, useRef } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { useSmoothScroll } from '../hooks/useSmoothScroll'
+import Navbar from '../components/Navbar'
+import IntroVideo from '../components/IntroVideo'
+import HeroSlider from '../components/HeroSlider'
+import ContactBar from '../components/ContactBar'
+import BookNowPanel from '../components/BookNowPanel'
+import SideForm from '../components/SideForm'
+import SiteFooter from '../components/SiteFooter'
+
+const EASE = 'cubic-bezier(0.65, 0.01, 0.05, 0.99)'
+
+function easeInOut(t: number) { return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t }
 
 export default function Home() {
-  const [yearsCount, setYearsCount] = useState(0);
+  const navigate = useNavigate()
+  const [introDone, setIntroDone] = useState(false)
+  const [bookNowOpen, setBookNowOpen] = useState(false)
+  const { jumpTo, scrollTo } = useSmoothScroll()
 
-  const videoFloatRef  = useRef<HTMLDivElement>(null);
-  const videoLabelRef  = useRef<HTMLDivElement>(null);
-  const videoSlotRef   = useRef<HTMLDivElement>(null);
-  const videoTargetRef = useRef<HTMLDivElement>(null);
+  const section1Ref = useRef<HTMLDivElement>(null)
+  const section4Ref = useRef<HTMLDivElement>(null)
+  const mapPlaceholderRef = useRef<HTMLDivElement>(null)
+  const autoPulledRef = useRef(false)
+  const autoPulled4Ref = useRef(false)
+  const scrollStopTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  const PRODUCTS = [
-    {
-      label: 'Weather Defense Exterior Coating',
-      warranty: 'Lifetime Warranted',
-      desc: 'Advanced moisture-resistant coating shields your home from UV rays, rain, and harsh weather — while delivering a fresh, polished curb appeal that lasts for life.',
-      src: 'https://static.wixstatic.com/media/6b5032_79aff2f8009e429bba41a97f824c2137~mv2.jpg/v1/fill/w_900,h_1100,fp_0.50_0.50,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/6b5032_79aff2f8009e429bba41a97f824c2137~mv2.jpg',
-    },
-    {
-      label: 'High Performance Windows',
-      warranty: 'Lifetime Warranted',
-      desc: 'Energy Star certified windows that block UV rays, reduce heat gain, cut noise, and slash utility bills — backed by the strongest warranty in the industry.',
-      src: 'https://static.wixstatic.com/media/6b5032_6e245b00b1434806ab9d32aa908e95d9~mv2.jpg/v1/fill/w_900,h_1100,fp_0.50_0.50,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/6b5032_6e245b00b1434806ab9d32aa908e95d9~mv2.jpg',
-    },
-    {
-      label: 'Heat Reflecting Roofing',
-      warranty: '30 Years Warranted',
-      desc: "Certified cool-roof technology that reflects solar heat, lowers your cooling costs significantly, and holds up against LA's toughest weather for decades.",
-      src: 'https://static.wixstatic.com/media/6b5032_f478df73e2134788868f3a113f84d717~mv2.jpg/v1/fill/w_900,h_1100,fp_0.50_0.50,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/6b5032_f478df73e2134788868f3a113f84d717~mv2.jpg',
-    },
-  ] as const;
+  const [parallaxY, setParallaxY] = useState(0)
+  const [scale, setScale] = useState(1)
+  const [navInverted, setNavInverted] = useState(false)
+  const [section3Progress, setSection3Progress] = useState(0)
+  const [section4Progress, setSection4Progress] = useState(0)
+  const [section5Progress, setSection5Progress] = useState(0)
+  const [mapRect, setMapRect] = useState<{ top: number; left: number; width: number; height: number } | null>(null)
 
-  // Scroll-triggered animations
   useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => entries.forEach((e) => { if (e.isIntersecting) e.target.classList.add('visible'); }),
-      { threshold: 0.15, rootMargin: '0px 0px -40px 0px' }
-    );
-    document.querySelectorAll('.anim-item').forEach((el) => observer.observe(el));
-    return () => observer.disconnect();
-  }, []);
+    const measure = () => {
+      if (!mapPlaceholderRef.current) return
+      const r = mapPlaceholderRef.current.getBoundingClientRect()
+      setMapRect({ top: r.top, left: r.left, width: r.width, height: r.height })
+    }
+    measure()
+    window.addEventListener('resize', measure)
+    return () => window.removeEventListener('resize', measure)
+  }, [])
 
-  // Years counter
   useEffect(() => {
-    let n = 0;
-    const t = setInterval(() => {
-      n++;
-      setYearsCount(n);
-      if (n >= 21) { setYearsCount(21); clearInterval(t); }
-    }, 40);
-    return () => clearInterval(t);
-  }, []);
+    const onScroll = () => {
+      const scrolled = window.scrollY
+      const vh = window.innerHeight
 
-  // Floating video animation
-  useEffect(() => {
-    const videoFloat = videoFloatRef.current;
-    const videoLabel = videoLabelRef.current;
-    const slotEl     = videoSlotRef.current;
-    const targetEl   = videoTargetRef.current;
-    if (!videoFloat || !videoLabel || !slotEl || !targetEl) return;
+      setParallaxY(-scrolled * 0.35)
+      setScale(1 - Math.min(scrolled / vh, 1) * 0.06)
+      setNavInverted(scrolled >= vh - 64)
 
-    const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
-    const lerp  = (a: number, b: number, t: number) => a + (b - a) * t;
-    const ease  = (t: number) => (t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t);
+      // Section 3: enters at scrollY = 2vh-64, fully in at 3vh-128
+      const s3Start = vh * 2 - 64
+      const s3Range = vh - 64
+      const newS3 = Math.min(Math.max((scrolled - s3Start) / s3Range, 0), 1)
+      setSection3Progress(newS3)
 
-    function update() {
-      const slot   = slotEl!.getBoundingClientRect();
-      const target = targetEl!.getBoundingClientRect();
-      const vh = window.innerHeight;
-      const raw = clamp((vh - target.top) / vh, 0, 1);
-      const p = ease(raw);
-      videoFloat!.style.left         = lerp(slot.left,   target.left,   p) + 'px';
-      videoFloat!.style.top          = lerp(slot.top,    target.top,    p) + 'px';
-      videoFloat!.style.width        = lerp(slot.width,  target.width,  p) + 'px';
-      videoFloat!.style.height       = lerp(slot.height, target.height, p) + 'px';
-      videoFloat!.style.borderRadius = lerp(6, 0, p) + 'px';
-      videoLabel!.style.opacity      = String(clamp((p - 0.8) / 0.2, 0, 1));
+      // Section 4: enters at scrollY = 3vh-128, fully in at 4vh-192
+      const s4Start = vh * 3 - 128
+      const s4Range = vh - 64
+      const newS4 = Math.min(Math.max((scrolled - s4Start) / s4Range, 0), 1)
+      setSection4Progress(newS4)
+
+      // Soft magnet at 20%: pull section 4 to exact sticking point
+      if (newS4 >= 0.2 && !autoPulled4Ref.current) {
+        autoPulled4Ref.current = true
+        const target = section4Ref.current
+          ? section4Ref.current.offsetTop - 64
+          : s4Start + s4Range
+        scrollTo(target)
+      }
+      // Reset when scrolled back before entrance
+      if (newS4 < 0.05) {
+        autoPulled4Ref.current = false
+      }
+
+      // Section 5: shifted by one extra vh of dwell so auto-pull on section 4
+      // lands at vh*4-192 with a full vh of breathing room before section 5 starts
+      const s5Start = vh * 5 - 192
+      const s5Range = vh - 64
+      const newS5 = Math.min(Math.max((scrolled - s5Start) / s5Range, 0), 1)
+      setSection5Progress(newS5)
+
+      // Re-measure placeholder after section 2 sticks
+      if (mapPlaceholderRef.current) {
+        const r = mapPlaceholderRef.current.getBoundingClientRect()
+        setMapRect({ top: r.top, left: r.left, width: r.width, height: r.height })
+      }
+
+      // Auto-pull: when map is fully expanded, smooth-scroll to lock section 3
+      if (newS3 >= 0.98 && !autoPulledRef.current) {
+        autoPulledRef.current = true
+        scrollTo(s3Start + s3Range)
+      } else if (newS3 < 0.9) {
+        autoPulledRef.current = false
+      }
+    }
+    window.addEventListener('scroll', onScroll, { passive: true })
+
+    // Wheel-stop snap: uses wheel (real user input) not scroll (also fired by RAF loop)
+    const onWheelStop = () => {
+      if (!section4Ref.current) return
+      const vh = window.innerHeight
+      const s4Height = vh - 64
+      const stickAt = section4Ref.current.offsetTop - 64
+      const absDelta = Math.abs(window.scrollY - stickAt)
+      const nearHalf = absDelta > s4Height * (3 / 8) && absDelta < s4Height * (5 / 8)
+
+      // No snap when close to half — let user scroll freely through
+      if (nearHalf) return
+      if (absDelta < s4Height * (5 / 6)) scrollTo(stickAt)
     }
 
-    window.addEventListener('scroll', update, { passive: true });
-    window.addEventListener('resize', update, { passive: true });
-    const timer = setTimeout(update, 60);
+    const onWheel = () => {
+      if (scrollStopTimerRef.current) clearTimeout(scrollStopTimerRef.current)
+      if (!section4Ref.current) { scrollStopTimerRef.current = setTimeout(onWheelStop, 90); return }
+
+      const vh = window.innerHeight
+      const s4Height = vh - 64
+      const stickAt = section4Ref.current.offsetTop - 64
+      const absDelta = Math.abs(window.scrollY - stickAt)
+
+      // ≤1/6 visible → snap fast | ~1/2 visible → no snap | ≥1/4 visible → snap slower
+      const delay = absDelta > s4Height * (5 / 6) ? 90 : 300
+      scrollStopTimerRef.current = setTimeout(onWheelStop, delay)
+    }
+
+    window.addEventListener('wheel', onWheel, { passive: true })
     return () => {
-      window.removeEventListener('scroll', update);
-      window.removeEventListener('resize', update);
-      clearTimeout(timer);
-    };
-  }, []);
+      window.removeEventListener('scroll', onScroll)
+      window.removeEventListener('wheel', onWheel)
+      if (scrollStopTimerRef.current) clearTimeout(scrollStopTimerRef.current)
+    }
+  }, [scrollTo])
 
-  // Green products — simple scroll-triggered animations
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('visible');
-          }
-        });
-      },
-      { threshold: 0.2, rootMargin: '0px 0px -50px 0px' }
-    );
 
-    const greenCards = document.querySelectorAll('.green-product-row');
-    greenCards.forEach((card) => observer.observe(card));
 
-    return () => observer.disconnect();
-  }, []);
+  const vw = window.innerWidth
+  const vh = window.innerHeight
+  const sideFormWidth = navInverted ? 420 : 0
+  const targetW = vw - sideFormWidth
+  const targetH = (vh - 64) * 0.60
+  const src = mapRect ?? { top: vh * 0.7, left: 64, width: vw * 0.35, height: vh * 0.2 }
+
+  // Eased progress for smooth map & section2 animation
+  const ep = easeInOut(section3Progress)
+
+  // Section 4 entrance
+  const section4Entered = section4Progress > 0.05
+
+  // Section 5 uncover — section 4 slides up, section 5 revealed beneath
+  const ep5 = easeInOut(section5Progress)
+  const section5Active = section5Progress > 0.25    // hide side form/map only when section 4 is 1/4 out of frame
+  const section5Entered = section5Progress > 0.5   // trigger section 5 content animations
+  const section5Visible = section5Progress > 0.01  // show the fixed footer only when section 4 begins moving
+
+  const animMap = {
+    top:    src.top    + ep * (64       - src.top),
+    left:   src.left   + ep * (0        - src.left),
+    width:  src.width  + ep * (targetW  - src.width),
+    height: src.height + ep * (targetH  - src.height),
+    radius: 12 * (1 - ep),
+  }
+
+  // Section 3's exact viewport top (linear/scroll-driven, no easing)
+  const section3ViewportTop = 64 + (1 - section3Progress) * (vh - 64)
+  // Gap between map's eased bottom and section 3's linear top
+  const mapBottom = animMap.top + animMap.height
+  const gapHeight = Math.max(0, section3ViewportTop - mapBottom)
 
   return (
-    <div className="home-main">
+    <div>
+      <Navbar visible={introDone} bare={section5Active} onBookNow={() => setBookNowOpen(true)} onContact={() => { const vh = window.innerHeight; scrollTo(vh * 6 - 256) }} onHome={() => scrollTo(0)} onAbout={() => navigate('/about')} inverted={navInverted} />
 
-      {/* ── HERO WRAP ── */}
-      <div className="hero-wrap">
-        <div className="hero-top-line"></div>
+      {/* Scroll space for section 1 */}
+      <div style={{ height: '100vh' }} />
 
-        <nav className="hm-navbar">
-          <div className="brand-inspo">A1 HOME REMODELING INC.</div>
-          <div className="nav-links">
-            <a href="#hero">HOME</a>
-            <a href="#about">ABOUT</a>
-            <a href="#services">SERVICES</a>
-            <a href="#gallery">GALLERY</a>
-            <Link to="/appointment">CONTACT</Link>
-          </div>
-        </nav>
-
-        <div className="hero-inspo" id="hero">
-          <div className="hero-left">
-            <div className="hero-eyebrow animate-left delay-1">— SINCE 2002 —</div>
-            <h1 className="hero-title animate-left delay-2">A1 HOME</h1>
-            <div className="hero-sub animate-left delay-3">REMODELING INC.</div>
-            <div className="hero-location animate-left delay-4">CULVER CITY / LOS ANGELES</div>
-          </div>
-          <div className="hero-right">
-            <span className="license animate-right delay-1">CSLB #1059945</span><br />
-            <span className="animate-right delay-2">
-              <span className="years-counter">{yearsCount}</span> YEARS EXPERIENCE
-            </span><br />
-            <span className="animate-right delay-3">LICENSED • BONDED • INSURED</span><br />
-            <div className="animate-right delay-4" style={{ marginTop: '1rem', fontSize: '.9rem' }}>
-              <Link to="/appointment" className="quote-link">Schedule a Free Online Quote</Link><br />
-              424 345 2274 / 855 247 1019
-            </div>
-          </div>
+      {/* Section 1 — fixed, parallax */}
+      <div style={{
+        position: 'fixed', top: 0, left: 0, right: 0, height: '100vh',
+        zIndex: 10, overflow: 'hidden',
+        transform: `translateY(${parallaxY}px) scale(${scale})`,
+        transformOrigin: 'center top', willChange: 'transform',
+        backgroundColor: '#ffffff',
+      }}>
+        <ContactBar />
+        <div ref={section1Ref} style={{ paddingBottom: '4rem' }}>
+          <HeroSlider />
         </div>
       </div>
 
-      {/* ── TWO-COLUMN ROW ── */}
-      <div className="two-col">
-        <div className="col-left">
-          <Link to="/appointment" className="btn-quote">GET YOUR QUOTATION NOW</Link>
-          <div className="scroll-hint">
-            <span>Scroll Down</span>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
-              stroke="#1a1a1a" strokeWidth="2.5"
-              strokeLinecap="round" strokeLinejoin="round">
-              <line x1="12" y1="5" x2="12" y2="19" />
-              <polyline points="19 12 12 19 5 12" />
-            </svg>
-          </div>
+      {/* Section 2 — pulls back as section 3 slides over, with easing */}
+      <div style={{
+        position: 'sticky', top: '64px', zIndex: 20,
+        backgroundColor: '#000000', height: 'calc(100vh - 64px)',
+        overflow: 'hidden', display: 'flex', alignItems: 'flex-start',
+        padding: '3rem 0 0 0',
+        transform: `translateY(${-ep * (vh - 64) * 0.08}px) scale(${1 - ep * 0.04})`,
+        transformOrigin: 'center top', willChange: 'transform',
+        transition: 'transform 40ms linear',
+      }}>
+        {/* Left: text + map placeholder */}
+        <div style={{
+          flex: '0 0 45%', height: 'calc(100vh - 64px - 3rem)',
+          display: 'flex', flexDirection: 'column',
+          padding: '0 3rem 0 4rem',
+        }}>
+          <h2 style={{
+            fontFamily: "'HelveticaLTPro-Bold', 'Helvetica Neue', Helvetica, Arial, sans-serif",
+            fontWeight: 700, fontSize: 'clamp(2.4rem, 3vw + 2vh, 5.5rem)',
+            color: '#ffffff', margin: '0 0 clamp(1.5rem, 2vh, 3rem) 0',
+            lineHeight: 1.05, letterSpacing: '-0.01em', flexShrink: 0,
+          }}>
+            Professional<br />Services
+          </h2>
+          <p style={{
+            fontFamily: "'Poppins', sans-serif", fontWeight: 400,
+            fontSize: 'clamp(0.8rem, 0.8vw + 0.5vh, 1.15rem)',
+            color: 'rgba(255,255,255,0.7)', lineHeight: 1.8,
+            margin: '0 0 2rem 0', maxWidth: '400px', flexShrink: 0,
+          }}>
+            With our ever-growing selection of products, you'll have plenty of options to find the perfect fit for your home. Our success is built on a strong commitment to quality, integrity, and excellence in every project we take on. We strictly follow all codes and regulations, never cutting corners, so you can feel confident in the results. Explore our range of products and discover what's possible.
+          </p>
+
+          {/* Placeholder — floating map sits over this, fades out as it departs */}
+          <div
+            ref={mapPlaceholderRef}
+            style={{
+              flex: 1, minHeight: 0, borderRadius: '12px',
+              backgroundColor: '#111111',
+              opacity: 1 - ep,
+            }}
+          />
         </div>
-        <div className="video-slot" ref={videoSlotRef}></div>
+
+        {/* Right: image */}
+        <div style={{
+          flex: '0 0 55%', position: 'relative',
+          height: 'calc(100vh - 64px - 3rem)', overflow: 'hidden',
+        }}>
+          <img
+            src="/Spray Painting.png"
+            alt="Professional spray painting service"
+            style={{
+              position: 'absolute', top: 0, left: 0,
+              width: 'calc(100% + 420px)', height: '100%',
+              objectFit: 'cover', objectPosition: 'right center',
+              transform: navInverted ? 'translateX(-420px)' : 'translateX(0)',
+              transition: 'transform 0.6s cubic-bezier(0.65, 0.01, 0.05, 0.99) 0.24s',
+            }}
+          />
+        </div>
       </div>
 
-      {/* ── VIDEO LANDING ZONE ── */}
-      <div className="video-landing">
-        <div className="video-target" ref={videoTargetRef}></div>
-      </div>
+      {/* Scroll space for section 3 */}
+      <div style={{ height: '100vh' }} />
 
-      {/* ── FLOATING VIDEO ── */}
-      <div className="video-float" ref={videoFloatRef}>
-        <video autoPlay muted loop playsInline>
-          <source src="/video.mp4" type="video/mp4" />
-        </video>
-        <div className="video-float-label" ref={videoLabelRef}>
-          A1 HOME REMODELING — CULVER CITY, CA
+      {/* Section 3 */}
+      <div style={{
+        position: 'sticky', top: '64px', zIndex: 30,
+        backgroundColor: '#000000', height: 'calc(100vh - 64px)',
+        overflow: 'hidden', display: 'flex', flexDirection: 'column',
+      }}>
+        {/* Top zone — floating map lands here */}
+        <div style={{ height: '60%', flexShrink: 0 }} />
+
+        {/* Text — flush under map, avoids side form */}
+        <div style={{
+          flex: 1, display: 'flex', flexDirection: 'column',
+          alignItems: 'center', justifyContent: 'center',
+          padding: '0 4rem 2rem',
+          paddingRight: navInverted ? 'calc(4rem + 420px)' : '4rem',
+          gap: '1.25rem',
+          transition: 'padding-right 0.6s cubic-bezier(0.65, 0.01, 0.05, 0.99) 0.24s',
+        }}>
+          <p style={{
+            fontFamily: "'Poppins', sans-serif", fontWeight: 400,
+            fontSize: 'clamp(0.85rem, 0.9vw + 0.4vh, 1.1rem)',
+            color: 'rgba(255,255,255,0.75)', lineHeight: 1.8,
+            margin: 0, textAlign: 'center', maxWidth: '680px',
+          }}>
+            We see a brighter future in every home by creating clean, sustainable energy that reduces our carbon footprint and leaves a healthier world for generations to come.
+          </p>
+          <p style={{
+            fontFamily: "'Poppins', sans-serif", fontWeight: 400,
+            fontSize: 'clamp(0.85rem, 0.9vw + 0.4vh, 1.1rem)',
+            color: 'rgba(255,255,255,0.75)', lineHeight: 1.8,
+            margin: 0, textAlign: 'center', maxWidth: '680px',
+          }}>
+            For every service we offer, our experienced professionals handle each project with care, precision, and attention to detail. Share your vision with us, and we will do everything we can to bring it to life.
+          </p>
         </div>
       </div>
 
-      {/* ── GALLERY SECTION ── */}
-      <section className="overlap-section" id="gallery">
-        <div className="overlap-inner">
-          <div className="overlap-text">
-            <div className="overlap-eyebrow anim-item anim-d1">Our Work</div>
-            <h2 className="overlap-heading anim-item anim-d2">Professional Services</h2>
-            <div className="overlap-divider anim-item anim-d3"></div>
-            <p className="overlap-desc anim-item anim-d4">
-              With our constantly growing product inventory, there are many options to choose from
-              when you decide to work with us. Our success stems from our commitment to uphold the
-              highest standards of excellence for every project we're involved in. We follow all
-              codes and bylaws and never take any shortcuts.
-            </p>
-            <a className="overlap-link anim-item anim-d5" href="#">
-              View Our List of Products →
-            </a>
-          </div>
+      {/* Section 4 scroll space */}
+      <div style={{ height: '100vh' }} />
 
-          <div className="overlap-stack">
-            <div className="stack-img img-1 anim-item anim-from-right anim-d2">
-              <img
-                src="https://static.wixstatic.com/media/6b5032_96af6fc611df4e158798930c3955867c~mv2.jpg/v1/fill/w_320,h_380,fp_0.50_0.50,q_80,usm_0.66_1.00_0.01,enc_avif,quality_auto/6b5032_96af6fc611df4e158798930c3955867c~mv2.jpg"
-                alt="Remodeling Project 1"
-              />
-            </div>
-            <div className="stack-img img-2 anim-item anim-from-right anim-d3">
-              <img
-                src="https://static.wixstatic.com/media/6b5032_057d8bf8f5034cee9cf71c702f9f2f45~mv2.jpg/v1/fill/w_330,h_380,fp_0.50_0.50,q_80,usm_0.66_1.00_0.01,enc_avif,quality_auto/6b5032_057d8bf8f5034cee9cf71c702f9f2f45~mv2.jpg"
-                alt="Remodeling Project 2"
-              />
-            </div>
-            <div className="stack-img img-3 anim-item anim-from-right anim-d4">
-              <img
-                src="https://static.wixstatic.com/media/6b5032_8820e2a1ab5842569ffedc1a21b10185~mv2.jpg/v1/fill/w_330,h_380,fp_0.50_0.50,lg_1,q_80,enc_avif,quality_auto/6b5032_8820e2a1ab5842569ffedc1a21b10185~mv2.jpg"
-                alt="Remodeling Project 3"
-              />
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* Section 4 — 23 Years of Experience
+          Structure (matches reference):
+            ┌────────────────────────────────────────────────────┐
+            │  text column (40%)  │  Roof Shingles image (60%)  │  ← top row, ~60% of height
+            ├─────────────────────┴─────────────────────────────┤
+            │              gap (~1.5vh, black)                   │
+            ├────────────────────────────────────────────────────┤
+            │         Window.jpg full-width banner               │  ← bottom, flex:1
+            └────────────────────────────────────────────────────┘
+          Window is NOT inside the right column — it spans under both columns. */}
+      <div ref={section4Ref} style={{
+        position: 'sticky', top: '64px', zIndex: 36,
+        backgroundColor: '#252525', height: 'calc(100vh - 64px)',
+        overflow: 'hidden', display: 'flex', flexDirection: 'column',
+        transform: ep5 > 0 ? `translateY(calc(${-ep5 * 100}% - ${ep5 * 64}px))` : undefined,
+        willChange: 'transform',
+      }}>
+        {/* Content wrapper: width shrinks when side form opens */}
+        <div style={{
+          display: 'flex', flexDirection: 'column',
+          width: navInverted ? 'calc(100% - 420px)' : '100%',
+          height: '100%',
+          overflow: 'hidden',
+          transition: `width 0.6s ${EASE} 0.24s`,
+        }}>
 
-      {/* ── GREEN PRODUCTS ── */}
-      <section className="green-section" id="green-products">
-        <div className="green-top-header anim-item anim-d1">
-          <div className="green-eyebrow-label">Our Products</div>
-          <h2 className="green-heading">Our Green Products</h2>
-          <div className="green-divider"></div>
-        </div>
+          {/* ── TOP ROW: text left + Roof Shingles right ── */}
+          <div style={{
+            flex: '0 0 50%',
+            minHeight: 0,
+            overflow: 'hidden',
+            display: 'flex',
+            paddingTop: '3rem',
+          }}>
 
-        <div className="green-products-list">
-          {PRODUCTS.map((p, i) => (
-            <div key={i} className="green-product-row anim-item">
-              <div className="green-card">
-                <div className="green-card-number">0{i + 1}</div>
-                <h3 className="green-card-title">{p.label}</h3>
-                <div className="green-card-warranty">{p.warranty}</div>
-                <p className="green-card-desc">{p.desc}</p>
+            {/* Left: text column — left edge at 4rem, right stops before image */}
+            <div style={{
+              flex: 1,
+              display: 'flex', flexDirection: 'column',
+              justifyContent: 'space-between',
+              padding: '0 3rem 0 4rem',
+            }}>
+              <div>
+                {/* "23 YEARS" — largest, sets the reference width */}
+                <div style={{ overflow: 'hidden' }}>
+                  <div style={{
+                    fontFamily: "'HelveticaLTPro-Bold', 'Helvetica Neue', Helvetica, Arial, sans-serif",
+                    fontWeight: 700,
+                    fontSize: 'min(5vw, 8.89vh)',
+                    color: '#ffffff',
+                    lineHeight: 1.05, letterSpacing: '-0.01em',
+                    transform: section4Entered ? 'translateY(0) rotate(0deg)' : 'translateY(115%) rotate(4deg)',
+                    opacity: section4Entered ? 1 : 0,
+                    transition: `transform 1.4s ${EASE} 0ms, opacity 0.9s ease 0ms`,
+                    transformOrigin: 'left bottom',
+                  }}>23 YEARS</div>
+                </div>
+                {/* "OF EXPERIENCE" — 62.3% size so rendered width ≈ "23 YEARS" width */}
+                <div style={{ overflow: 'hidden', marginBottom: '1.4vh' }}>
+                  <div style={{
+                    fontFamily: "'HelveticaLTPro-Bold', 'Helvetica Neue', Helvetica, Arial, sans-serif",
+                    fontWeight: 700,
+                    fontSize: 'min(3.12vw, 5.54vh)',
+                    color: '#ffffff',
+                    lineHeight: 1.05, letterSpacing: '-0.01em',
+                    transform: section4Entered ? 'translateY(0) rotate(0deg)' : 'translateY(115%) rotate(4deg)',
+                    opacity: section4Entered ? 1 : 0,
+                    transition: `transform 1.4s ${EASE} 0.1s, opacity 0.9s ease 0.1s`,
+                    transformOrigin: 'left bottom',
+                  }}>OF EXPERIENCE</div>
+                </div>
+                {/* Subtitle — 30.5% size so rendered width ≈ "23 YEARS" width */}
+                <div style={{ overflow: 'hidden' }}>
+                  <div style={{
+                    fontFamily: "'HelveticaLTPro-Bold', 'Helvetica Neue', Helvetica, Arial, sans-serif",
+                    fontWeight: 700,
+                    fontSize: 'min(1.53vw, 2.72vh)',
+                    color: '#ffffff',
+                    lineHeight: 1.3,
+                    transform: section4Entered ? 'translateY(0) rotate(0deg)' : 'translateY(115%) rotate(4deg)',
+                    opacity: section4Entered ? 1 : 0,
+                    transition: `transform 1.4s ${EASE} 0.22s, opacity 0.9s ease 0.22s`,
+                    transformOrigin: 'left bottom',
+                  }}>Licensed, Bonded, and Insured</div>
+                </div>
               </div>
-              <div className="green-product-img">
-                <img src={p.src} alt={p.label} />
-              </div>
+
+              {/* Body — pushed to bottom of top row */}
+              <p style={{
+                fontFamily: "'Poppins', sans-serif", fontWeight: 400,
+                fontSize: 'min(0.82vw, 1.46vh)',
+                color: 'rgba(255,255,255,0.7)', lineHeight: 1.85,
+                margin: 0,
+                opacity: section4Entered ? 1 : 0,
+                transform: section4Entered ? 'translateY(0)' : 'translateY(24px)',
+                transition: `opacity 0.9s ease 0.3s, transform 0.9s ${EASE} 0.3s`,
+              }}>
+                With over two decades of experience, we have built more than just homes, we have built lasting trust with every client we serve. Our commitment to quality, safety, and excellence is reflected in every detail of our work. As a licensed, bonded, and insured company, we provide peace of mind knowing your home is in capable and reliable hands. We take pride in delivering results that stand the test of time.
+              </p>
             </div>
-          ))}
-        </div>
-      </section>
 
-      {/* ── BLOG SECTION ── */}
-      <section className="blog-section" id="blog">
-        <div className="blog-inner">
-          <div className="blog-header anim-item anim-d1">
-            <div className="blog-eyebrow">Latest News</div>
-            <h2 className="blog-heading">From Our Blog</h2>
-            <div className="overlap-divider" style={{ margin: '1rem auto 0' }}></div>
-          </div>
-          <div className="blog-grid">
-
-            <article className="blog-card anim-item anim-d2">
-              <div className="blog-img-wrap">
+            {/* Right: Roof Shingles — auto width so image sets its own size from natural proportions,
+                text column (flex:1) fills everything to the left of it */}
+            <div style={{ flex: '0 0 auto', paddingLeft: '2rem', overflow: 'hidden' }}>
+              <div style={{ height: '100%', overflow: 'hidden', borderRadius: '6px' }}>
                 <img
-                  src="https://static.wixstatic.com/media/6b5032_96af6fc611df4e158798930c3955867c~mv2.jpg/v1/fill/w_600,h_380,fp_0.50_0.50,q_80,usm_0.66_1.00_0.01,enc_avif,quality_auto/6b5032_96af6fc611df4e158798930c3955867c~mv2.jpg"
-                  alt="Kitchen Remodel Tips"
+                  src="/Roof Shingles.png"
+                  alt="Roof shingles"
+                  style={{
+                    height: '100%', width: 'auto',
+                    objectFit: 'contain',
+                    display: 'block',
+                    transform: section4Entered ? 'translateX(0)' : 'translateX(100px)',
+                    opacity: section4Entered ? 1 : 0,
+                    transition: `transform 1.0s ${EASE} 0.05s, opacity 0.7s ease 0.05s`,
+                  }}
                 />
               </div>
-              <div className="blog-card-body">
-                <div className="blog-meta">
-                  <span className="blog-category">Kitchen</span>
-                  <span className="blog-date">March 5, 2025</span>
-                </div>
-                <h3 className="blog-title">Top Kitchen Remodel Trends for 2025</h3>
-                <p className="blog-excerpt">Discover the latest design ideas and materials transforming modern kitchens in Los Angeles homes this year.</p>
-                <a className="blog-read-more" href="#">Read More →</a>
-              </div>
-            </article>
-
-            <article className="blog-card anim-item anim-d3">
-              <div className="blog-img-wrap">
-                <img
-                  src="https://static.wixstatic.com/media/6b5032_057d8bf8f5034cee9cf71c702f9f2f45~mv2.jpg/v1/fill/w_600,h_380,fp_0.50_0.50,q_80,usm_0.66_1.00_0.01,enc_avif,quality_auto/6b5032_057d8bf8f5034cee9cf71c702f9f2f45~mv2.jpg"
-                  alt="Bathroom Renovation Guide"
-                />
-              </div>
-              <div className="blog-card-body">
-                <div className="blog-meta">
-                  <span className="blog-category">Bathroom</span>
-                  <span className="blog-date">February 18, 2025</span>
-                </div>
-                <h3 className="blog-title">How to Plan a Bathroom Renovation</h3>
-                <p className="blog-excerpt">A step-by-step guide to planning your bathroom remodel — from budgeting to selecting the right fixtures.</p>
-                <a className="blog-read-more" href="#">Read More →</a>
-              </div>
-            </article>
-
-            <article className="blog-card anim-item anim-d4">
-              <div className="blog-img-wrap">
-                <img
-                  src="https://static.wixstatic.com/media/6b5032_8820e2a1ab5842569ffedc1a21b10185~mv2.jpg/v1/fill/w_600,h_380,fp_0.50_0.50,lg_1,q_80,enc_avif,quality_auto/6b5032_8820e2a1ab5842569ffedc1a21b10185~mv2.jpg"
-                  alt="ADU Construction"
-                />
-              </div>
-              <div className="blog-card-body">
-                <div className="blog-meta">
-                  <span className="blog-category">ADU</span>
-                  <span className="blog-date">January 30, 2025</span>
-                </div>
-                <h3 className="blog-title">ADU Construction: What You Need to Know</h3>
-                <p className="blog-excerpt">Accessory Dwelling Units are a great investment. Learn the permits, costs, and timelines involved in building an ADU in California.</p>
-                <a className="blog-read-more" href="#">Read More →</a>
-              </div>
-            </article>
-
+            </div>
           </div>
+
+          {/* ── MIDDLE HORIZONTAL GAP — matches side padding of window (3rem) ── */}
+          <div style={{ flexShrink: 0, height: '3rem' }} />
+
+          {/* ── BOTTOM: Window.jpg banner ──
+              Right padding = gap between banner and side form.
+              Bottom padding lifts it off the section floor. */}
+          <div style={{ flex: 1, padding: '0 3rem 3rem 0', overflow: 'hidden' }}>
+            <div style={{ width: '100%', height: '100%', overflow: 'hidden' }}>
+              <img
+                src="/Window.jpg"
+                alt="Window installation"
+                style={{
+                  width: '100%', height: '100%',
+                  objectFit: 'cover', objectPosition: 'center 40%',
+                  display: 'block',
+                  transform: section4Entered ? 'translateX(0)' : 'translateX(-100px)',
+                  opacity: section4Entered ? 1 : 0,
+                  transition: `transform 1.0s ${EASE} 0.2s, opacity 0.7s ease 0.2s`,
+                }}
+              />
+            </div>
+          </div>
+
         </div>
-      </section>
+      </div>
 
-      <Footer />
-      <ChatWidget />
+      {/* Section 4 dwell space — auto-pull lands here, user sees section 4 locked */}
+      <div style={{ height: '100vh' }} />
 
+      {/* Section 5 scroll space — scrolling this triggers section 4 sliding up */}
+      <div style={{ height: '100vh' }} />
+
+      {/* Section 5 — Footer
+          position: FIXED behind section 4 (zIndex 35 < 36).
+          Hidden via opacity/pointerEvents until section 4 actually starts sliding —
+          otherwise the black background would cover sections 1–3 from page load. */}
+      <div style={{
+        position: 'fixed', top: 0, left: 0, right: 0, zIndex: 35,
+        height: '100vh',
+        opacity: section5Visible ? 1 : 0,
+        pointerEvents: section5Visible ? 'all' : 'none',
+      }}>
+        <SiteFooter
+          entered={section5Entered}
+          onHome={() => scrollTo(0)}
+          onAbout={() => navigate('/about')}
+          onContact={() => { const vh = window.innerHeight; scrollTo(vh * 6 - 256) }}
+          onBookNow={() => setBookNowOpen(true)}
+        />
+      </div>
+
+      {/* Gap filler — black div that bridges eased map bottom → linear section 3 top */}
+      {section3Progress > 0 && gapHeight > 0 && navInverted && !section5Active && (
+        <div style={{
+          position: 'fixed',
+          top: mapBottom,
+          left: 0,
+          width: targetW,
+          height: gapHeight,
+          backgroundColor: '#000000',
+          zIndex: 25,
+          pointerEvents: 'none',
+        }} />
+      )}
+
+      {/* Single floating map — moves from section 2 corner → section 3 full top */}
+      {navInverted && mapRect && !section5Active && (
+        <a
+          href="https://www.google.com/maps/dir/?api=1&destination=400+Corporate+Pointe,+Culver+City,+CA+90230"
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            position: 'fixed',
+            top: animMap.top, left: animMap.left,
+            width: animMap.width, height: animMap.height,
+            zIndex: 35, display: 'block',
+            borderRadius: animMap.radius,
+            overflow: 'hidden', cursor: 'pointer',
+          }}
+        >
+          <iframe
+            title="A1 Home Remodeling location"
+            src="https://maps.google.com/maps?q=400+Corporate+Pointe,+Culver+City,+CA+90230&output=embed"
+            width="100%"
+            height="100%"
+            style={{ border: 0, display: 'block', pointerEvents: 'none' }}
+            allowFullScreen
+            loading="lazy"
+            referrerPolicy="no-referrer-when-downgrade"
+          />
+        </a>
+      )}
+
+      <SideForm visible={navInverted && !section5Active} />
+
+      <BookNowPanel open={bookNowOpen} onClose={() => setBookNowOpen(false)} />
+
+      {!introDone && <IntroVideo onEnd={() => { jumpTo(0); setIntroDone(true) }} />}
     </div>
-  );
+  )
 }
