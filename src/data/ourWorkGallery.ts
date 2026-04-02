@@ -6,11 +6,6 @@ export interface WorkProject {
   images: string[]
 }
 
-/**
- * Add a new entry here whenever a folder is added to /public/our work/.
- * Image paths are relative to /public — use %20 for spaces or rename folders.
- * Vite serves /public contents at the root URL: "/our work/Folder/main.avif"
- */
 export const OUR_WORK_PROJECTS: WorkProject[] = [
   {
     id: 'exterior-home-transformation',
@@ -27,14 +22,47 @@ export const OUR_WORK_PROJECTS: WorkProject[] = [
       '/our work/Exterior Home Transformation/img_7.avif',
     ],
   },
-  // ─── Add more projects below as new folders are created ───
-  // {
-  //   id: 'kitchen-remodel',
-  //   title: 'Kitchen Remodel',
-  //   description: '...',
-  //   images: [
-  //     '/our work/Kitchen Remodel/Main.avif',
-  //     '/our work/Kitchen Remodel/img_1.avif',
-  //   ],
-  // },
+  {
+    id: 'exterior-paint-roofing-upgrade',
+    title: 'Exterior Paint & Roofing Upgrade',
+    description:
+      'From worn and outdated to clean and refreshed, this transformation highlights the impact of a new roof and updated exterior paint. The improved color and finish bring a brighter, more modern look, while the new roofing adds durability and protection. A simple upgrade that makes a lasting difference in both style and function.',
+    images: [
+      '/our work/Exterior Paint & Roofing Upgrade/main.avif',
+      '/our work/Exterior Paint & Roofing Upgrade/img_2.avif',
+    ],
+  },
+  {
+    id: 'kitchen-remodeling',
+    title: 'Kitchen Remodeling',
+    description:
+      'A complete kitchen transformation that blends style and functionality. With updated finishes, modern cabinetry, and a refreshed layout, this space is now brighter, more efficient, and built for everyday living. A true upgrade that brings comfort and elegance into the heart of the home.',
+    images: [
+      '/our work/Kitchen Remodeling/main.avif',
+      '/our work/Kitchen Remodeling/img_16.avif',
+      '/our work/Kitchen Remodeling/img_17.avif',
+    ],
+  },
+  {
+    id: 'pavement-installation',
+    title: 'Pavement Installation',
+    description:
+      'A fresh pavement installation that transforms the space into a cleaner, more functional, and visually appealing area. With smooth finishes and improved structure, this upgrade enhances both accessibility and overall curb appeal while adding long-lasting durability.',
+    images: [
+      '/our work/Pavement Installation/main.avif',
+      '/our work/Pavement Installation/img_12.avif',
+      '/our work/Pavement Installation/img_13.avif',
+      '/our work/Pavement Installation/img_14.avif',
+    ],
+  },
+  {
+    id: 'roofing-upgrade',
+    title: 'Roofing Upgrade',
+    description:
+      'A worn roof replaced with a clean, durable new system that enhances both protection and appearance. This upgrade not only strengthens the home against the elements but also gives it a fresh, well-maintained look that lasts for years to come.',
+    images: [
+      '/our work/Roofing Upgrade/main.avif',
+      '/our work/Roofing Upgrade/img_10.avif',
+    ],
+  },
 ]

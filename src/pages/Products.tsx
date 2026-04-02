@@ -1,27 +1,46 @@
 import { useNavigate } from 'react-router-dom'
 import Navbar from '../components/Navbar'
 import SiteFooter from '../components/SiteFooter'
-import GalleryModal, { type GalleryItem } from '../components/GalleryModal'
-import { useState, useEffect, useRef } from 'react'
+import ProductModal, { type ProductItem } from '../components/ProductModal'
+import BookNowPanel from '../components/BookNowPanel'
+import { useState, useEffect, useLayoutEffect, useRef } from 'react'
 import { useSmoothScroll } from '../hooks/useSmoothScroll'
 import { HoverSlider, TextStaggerHover, HoverSliderImageWrap, HoverSliderImage } from '../components/HoverSlider'
 
-const SLIDES: { label: string; number: string; img: string; gallery: GalleryItem }[] = [
-  { label: 'Weather Defense Exterior Coating', number: '01', img: '/Spray Painting.png', gallery: {
-    title: 'Weather Defense Exterior Coating',
-    description: 'Moisture-resistant coating that shields your home from UV rays, rain, and harsh weather. Our advanced formula creates a breathable barrier that keeps moisture out while allowing the walls to breathe naturally.',
-    images: ['/Spray Painting.png', '/Roof Shingles.png'],
-  }},
-  { label: 'High Performance Windows', number: '02', img: '/Roof Shingles.png', gallery: {
-    title: 'High Performance Windows',
-    description: 'Energy Star certified windows that reduce heat gain, cut noise, and slash utility bills. Available in a variety of styles and finishes to complement any architectural design.',
-    images: ['/Roof Shingles.png', '/Spray Painting.png'],
-  }},
-  { label: 'Heat Reflecting Roofing', number: '03', img: '/Spray Painting.png', gallery: {
-    title: 'Heat Reflecting Roofing',
-    description: "Cool-roof technology that reflects solar heat and holds up against LA's toughest weather. Reduce your cooling costs by up to 30% while extending the life of your roof.",
-    images: ['/Spray Painting.png', '/Roof Shingles.png'],
-  }},
+const SLIDES: { label: string; number: string; img: string; product: ProductItem }[] = [
+  {
+    label: 'Weather Defense Exterior Coating',
+    number: '01',
+    img: '/products/WEATHER DEFENSE EXTERIOR COATING/WEATHER DEFENSE EXTERIOR COATING.png',
+    product: {
+      title: 'Weather Defense Exterior Coating',
+      warranty: 'Lifetime Warrantied',
+      info: 'A protective layer that shields your home from sun, rain, and time. Built to resist moisture and harsh elements, it keeps your home looking strong, clean, and beautiful year after year.',
+      image: '/products/WEATHER DEFENSE EXTERIOR COATING/WEATHER DEFENSE EXTERIOR COATING.png',
+    },
+  },
+  {
+    label: 'High Performance Windows',
+    number: '02',
+    img: '/products/HIGH PERFORMANCE WINDOWS/HIGH PERFORMANCE WINDOWS.png',
+    product: {
+      title: 'High Performance Windows',
+      warranty: 'Lifetime Warrantied',
+      info: 'Designed for comfort and efficiency, these windows keep the heat out, the cool air in, and the noise at bay. A smarter way to brighten your home while lowering energy costs.',
+      image: '/products/HIGH PERFORMANCE WINDOWS/HIGH PERFORMANCE WINDOWS.png',
+    },
+  },
+  {
+    label: 'Heat Reflecting Roofing',
+    number: '03',
+    img: '/products/HEAT REFLECTING ROOFING/ChatGPT Image Apr 2, 2026, 07_13_31 PM.png',
+    product: {
+      title: 'Heat Reflecting Roofing',
+      warranty: '30 Years Warrantied',
+      info: 'Engineered to reflect the sun and endure extreme conditions, this roofing system keeps your home cooler and protected. Strength, efficiency, and peace of mind, all from the top down.',
+      image: '/products/HEAT REFLECTING ROOFING/ChatGPT Image Apr 2, 2026, 07_13_31 PM.png',
+    },
+  },
 ]
 
 export default function Products() {
@@ -31,15 +50,21 @@ export default function Products() {
   const [listOverflow, setListOverflow] = useState(0)
   const [scrollY, setScrollY] = useState(0)
   const scrollStopTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const [galleryItem, setGalleryItem] = useState<GalleryItem | null>(null)
+  const [productItem, setProductItem] = useState<ProductItem | null>(null)
+  const [bookNowOpen, setBookNowOpen] = useState(false)
+
+  useLayoutEffect(() => {
+    window.scrollTo(0, 0)
+    document.documentElement.scrollTop = 0
+    setScrollY(0)
+  }, [])
 
   useEffect(() => {
     if (!listRef.current) return
     const measure = () => {
       if (!listRef.current) return
-      const vh = window.innerHeight
       const listH = listRef.current.scrollHeight
-      setListOverflow(Math.max(listH - (vh - 64), 0))
+      setListOverflow(Math.max(listH - (window.innerHeight - 64), 0))
     }
     measure()
     const ro = new ResizeObserver(measure)
@@ -82,13 +107,16 @@ export default function Products() {
     <div style={{ width: '100vw', backgroundColor: '#ffffff', position: 'relative' }}>
       <Navbar
         visible
+        bare={footerVisible}
         inverted={false}
+        onBookNow={() => setBookNowOpen(true)}
         onHome={() => navigate('/')}
         onAbout={() => navigate('/about')}
-        onProducts={() => {}}
+        onProducts={() => window.scrollTo(0, 0)}
         onOurWork={() => navigate('/our-work')}
-        onContact={() => navigate('/')}
+        onContact={() => navigate('/contact')}
       />
+      <BookNowPanel open={bookNowOpen} onClose={() => setBookNowOpen(false)} />
 
       {/* Scroll space: list overflow + footer */}
       <div style={{ height: `calc(100vh + ${listOverflow}px + 100vh)` }} />
@@ -102,12 +130,7 @@ export default function Products() {
         <HoverSlider style={{ display: 'flex', height: '100%' } as React.CSSProperties}>
 
           {/* Left — scrollable list */}
-          <div style={{
-            flex: '0 0 50%',
-            height: '100%',
-            overflow: 'hidden',
-            paddingTop: '64px',
-          }}>
+          <div style={{ flex: '0 0 50%', height: '100%', overflow: 'hidden', paddingTop: '64px' }}>
             <div
               ref={listRef}
               style={{
@@ -134,15 +157,17 @@ export default function Products() {
                   <TextStaggerHover
                     text={slide.label}
                     index={i}
-                    onSelect={() => setGalleryItem(slide.gallery)}
+                    onSelect={() => setProductItem(slide.product)}
                     style={{
-                      fontFamily: "'HelveticaLTPro-Bold', 'Helvetica Neue', Helvetica, Arial, sans-serif",
+                      fontFamily: "'helvetica-lt-pro', 'Helvetica Neue', Helvetica, Arial, sans-serif",
                       fontWeight: 900,
                       fontSize: 'clamp(2rem, 4vw, 5.5rem)',
                       color: '#111',
                       letterSpacing: '-0.02em',
                       lineHeight: 1.15,
-                      cursor: 'default',
+                      cursor: 'pointer',
+                      flex: '1 1 0%',
+                      minWidth: 0,
                     } as React.CSSProperties}
                   />
                 </div>
@@ -162,7 +187,7 @@ export default function Products() {
         </HoverSlider>
       </div>
 
-      <GalleryModal item={galleryItem} onClose={() => setGalleryItem(null)} />
+      <ProductModal item={productItem} onClose={() => setProductItem(null)} />
 
       {/* Footer */}
       <div style={{
@@ -176,9 +201,10 @@ export default function Products() {
           entered={footerEntered}
           onHome={() => navigate('/')}
           onAbout={() => navigate('/about')}
-          onProducts={() => {}}
+          onProducts={() => window.scrollTo(0,0)}
           onOurWork={() => navigate('/our-work')}
-          onContact={() => scrollTo(listOverflow + window.innerHeight)}
+          onContact={() => navigate('/contact')}
+
           onBookNow={() => navigate('/')}
         />
       </div>

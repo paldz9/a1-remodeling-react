@@ -5,7 +5,11 @@
       "Bash(npx vite:*)",
       "Bash(grep -E \"\\\\.\\(tsx|ts|jsx|js\\)$\")",
       "Bash(npx tsc:*)",
-      "WebFetch(domain:21st.dev)"
+      "WebFetch(domain:21st.dev)",
+      "Bash(curl -s \"https://use.typekit.net/sue6qht.css\")",
+      "Bash(sed -i \"s/'HelveticaLTPro-Bold', 'Helvetica Neue', Helvetica, Arial, sans-serif/\\\\\"helvetica-lt-pro\\\\\", 'Helvetica Neue', Helvetica, Arial, sans-serif/g\" src/components/GalleryModal.tsx src/components/ProductModal.tsx src/components/SiteFooter.tsx src/pages/AboutUs.tsx src/pages/Home.tsx src/pages/OurWork.tsx src/pages/Products.tsx)",
+      "Bash(sed -i \"s/'HelveticaLTPro-Bold', 'Arial Black', 'Helvetica Neue', Helvetica, Arial, sans-serif/\\\\\"helvetica-lt-pro\\\\\", 'Helvetica Neue', Helvetica, Arial, sans-serif/g\" src/components/GalleryModal.tsx src/components/ProductModal.tsx src/components/SiteFooter.tsx src/pages/AboutUs.tsx src/pages/Home.tsx src/pages/OurWork.tsx src/pages/Products.tsx)",
+      "Bash(node -e ':*)"
     ]
   }
 }

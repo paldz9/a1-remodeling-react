@@ -1,7 +1,8 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useLayoutEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Navbar from '../components/Navbar'
 import SiteFooter from '../components/SiteFooter'
+import BookNowPanel from '../components/BookNowPanel'
 import { useSmoothScroll } from '../hooks/useSmoothScroll'
 
 export default function AboutUs() {
@@ -11,6 +12,13 @@ export default function AboutUs() {
   const footerEntered = footerProgress > 0.5
   const footerVisible = footerProgress > 0.01
   const scrollStopTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const [bookNowOpen, setBookNowOpen] = useState(false)
+
+  useLayoutEffect(() => {
+    window.scrollTo(0, 0)
+    document.documentElement.scrollTop = 0
+    setFooterProgress(0)
+  }, [])
 
   useEffect(() => {
     const onScroll = () => {
@@ -46,13 +54,16 @@ export default function AboutUs() {
     <div style={{ width: '100vw', backgroundColor: '#ffffff', position: 'relative' }}>
       <Navbar
         visible
+        bare={footerVisible}
         inverted={false}
+        onBookNow={() => setBookNowOpen(true)}
         onHome={() => navigate('/')}
-        onAbout={() => {}}
+        onAbout={() => window.scrollTo(0, 0)}
         onProducts={() => navigate('/products')}
         onOurWork={() => navigate('/our-work')}
-        onContact={() => navigate('/')}
+        onContact={() => navigate('/contact')}
       />
+      <BookNowPanel open={bookNowOpen} onClose={() => setBookNowOpen(false)} />
 
       {/* Main layout — below navbar, two columns */}
       <div style={{
@@ -72,7 +83,7 @@ export default function AboutUs() {
         }}>
           {/* Title — top aligned, pushed down a little */}
           <h1 style={{
-            fontFamily: "'HelveticaLTPro-Bold', 'Helvetica Neue', Helvetica, Arial, sans-serif",
+            fontFamily: "'helvetica-lt-pro', 'Helvetica Neue', Helvetica, Arial, sans-serif",
             fontWeight: 900,
             fontSize: 'clamp(3.5rem, 7.5vw, 9rem)',
             color: '#111111',
@@ -145,7 +156,7 @@ export default function AboutUs() {
             overflow: 'hidden',
           }}>
             <div style={{
-              fontFamily: "'HelveticaLTPro-Bold', 'Helvetica Neue', Helvetica, Arial, sans-serif",
+              fontFamily: "'helvetica-lt-pro', 'Helvetica Neue', Helvetica, Arial, sans-serif",
               fontWeight: 900,
               color: '#111111',
               letterSpacing: '-0.02em',
@@ -175,10 +186,10 @@ export default function AboutUs() {
         <SiteFooter
           entered={footerEntered}
           onHome={() => navigate('/')}
-          onAbout={() => {}}
+          onAbout={() => window.scrollTo(0,0)}
           onProducts={() => navigate('/products')}
           onOurWork={() => navigate('/our-work')}
-          onContact={() => scrollTo(window.innerHeight * 1.2)}
+          onContact={() => navigate('/contact')}
           onBookNow={() => navigate('/')}
         />
       </div>

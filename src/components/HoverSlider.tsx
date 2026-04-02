@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState } from "react"
+import React, { useCallback, useLayoutEffect, useRef, useState } from "react"
 import { type HTMLMotionProps, motion } from "motion/react"
 import { cn } from "@/lib/utils"
 
@@ -57,6 +57,8 @@ export const TextStaggerHover = React.forwardRef<HTMLElement, React.HTMLAttribut
     const rafRef = useRef<number | null>(null)
     const startRef = useRef<number>(0)
     const wasActive = useRef(index === 0)
+    const containerRef = useRef<HTMLSpanElement>(null)
+    const wordRefs = useRef<(HTMLSpanElement | null)[]>([])
 
     const scramble = useCallback(() => {
       if (rafRef.current) cancelAnimationFrame(rafRef.current)
@@ -86,15 +88,51 @@ export const TextStaggerHover = React.forwardRef<HTMLElement, React.HTMLAttribut
     }, [isActive, scramble, upper])
 
     const { words: originalWords } = splitText(text)
+
+    // Per-word scale-to-fit: shrink only words that overflow the container
+    useLayoutEffect(() => {
+      const container = containerRef.current
+      if (!container) return
+
+      const applyScales = () => {
+        // Reset all transforms first so we get unscaled measurements
+        wordRefs.current.forEach(el => {
+          if (el) el.style.transform = ''
+        })
+        // Now read the constrained container width (requires flex:1 on the element)
+        const maxWidth = container.offsetWidth
+        if (maxWidth === 0) return
+        wordRefs.current.forEach(el => {
+          if (!el) return
+          el.style.transformOrigin = 'left center'
+          const natural = el.scrollWidth
+          if (natural > maxWidth) {
+            el.style.transform = `scaleX(${maxWidth / natural})`
+          }
+        })
+      }
+
+      applyScales()
+      const ro = new ResizeObserver(applyScales)
+      ro.observe(container)
+      // Re-check once fonts finish loading (web fonts render wider)
+      document.fonts.ready.then(applyScales)
+      return () => ro.disconnect()
+    }, [text])
+
     // Rebuild per-word char arrays from flat chars (skipping spaces)
     let charIdx = 0
 
+    // Reset word refs each render so the array stays in sync with word count
+    wordRefs.current = []
+
     return (
       <span
+        ref={containerRef}
         className={cn("relative origin-bottom", className)}
         onMouseEnter={() => changeSlide(index)}
         onClick={onSelect}
-        style={{ display: 'block', cursor: onSelect ? 'pointer' : 'default' }}
+        style={{ display: 'block', cursor: onSelect ? 'pointer' : 'default', overflow: 'visible' }}
         {...props}
       >
         {originalWords.map((word, wi) => {
@@ -102,7 +140,10 @@ export const TextStaggerHover = React.forwardRef<HTMLElement, React.HTMLAttribut
           charIdx += word.length + 1 // +1 for space
           return (
             <React.Fragment key={`word-${wi}`}>
-              <span style={{ display: 'inline-block', whiteSpace: 'nowrap' }}>
+              <span
+                ref={el => { wordRefs.current[wi] = el }}
+                style={{ display: 'inline-block', whiteSpace: 'nowrap' }}
+              >
                 {wordChars.map((c, ci) => (
                   <span key={ci} style={{ color: c.resolved ? '#111111' : '#bbbbbb', transition: 'color 0.2s ease' }}>
                     {c.ch}

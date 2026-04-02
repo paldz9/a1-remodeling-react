@@ -34,6 +34,7 @@ export default function Home() {
   const [section5Progress, setSection5Progress] = useState(0)
   const [mapRect, setMapRect] = useState<{ top: number; left: number; width: number; height: number } | null>(null)
 
+
   useEffect(() => {
     const measure = () => {
       if (!mapPlaceholderRef.current) return
@@ -175,7 +176,7 @@ export default function Home() {
 
   return (
     <div>
-      <Navbar visible={introDone} bare={section5Active} onBookNow={() => setBookNowOpen(true)} onContact={() => { const vh = window.innerHeight; scrollTo(vh * 6 - 256) }} onHome={() => scrollTo(0)} onAbout={() => navigate('/about')} onProducts={() => navigate('/products')} onOurWork={() => navigate('/our-work')} inverted={navInverted} />
+      <Navbar visible={introDone} bare={section5Active} onBookNow={() => setBookNowOpen(true)} onContact={() => navigate('/contact')} onHome={() => scrollTo(0)} onAbout={() => navigate('/about')} onProducts={() => navigate('/products')} onOurWork={() => navigate('/our-work')} inverted={navInverted} />
 
       {/* Scroll space for section 1 */}
       <div style={{ height: '100vh' }} />
@@ -211,7 +212,7 @@ export default function Home() {
           padding: '0 3rem 0 4rem',
         }}>
           <h2 style={{
-            fontFamily: "'HelveticaLTPro-Bold', 'Helvetica Neue', Helvetica, Arial, sans-serif",
+            fontFamily: "'helvetica-lt-pro', 'Helvetica Neue', Helvetica, Arial, sans-serif",
             fontWeight: 700, fontSize: 'clamp(2.4rem, 3vw + 2vh, 5.5rem)',
             color: '#ffffff', margin: '0 0 clamp(1.5rem, 2vh, 3rem) 0',
             lineHeight: 1.05, letterSpacing: '-0.01em', flexShrink: 0,
@@ -346,7 +347,7 @@ export default function Home() {
                 {/* "23 YEARS" — largest, sets the reference width */}
                 <div style={{ overflow: 'hidden' }}>
                   <div style={{
-                    fontFamily: "'HelveticaLTPro-Bold', 'Helvetica Neue', Helvetica, Arial, sans-serif",
+                    fontFamily: "'helvetica-lt-pro', 'Helvetica Neue', Helvetica, Arial, sans-serif",
                     fontWeight: 700,
                     fontSize: 'min(5vw, 8.89vh)',
                     color: '#ffffff',
@@ -360,7 +361,7 @@ export default function Home() {
                 {/* "OF EXPERIENCE" — 62.3% size so rendered width ≈ "23 YEARS" width */}
                 <div style={{ overflow: 'hidden', marginBottom: '1.4vh' }}>
                   <div style={{
-                    fontFamily: "'HelveticaLTPro-Bold', 'Helvetica Neue', Helvetica, Arial, sans-serif",
+                    fontFamily: "'helvetica-lt-pro', 'Helvetica Neue', Helvetica, Arial, sans-serif",
                     fontWeight: 700,
                     fontSize: 'min(3.12vw, 5.54vh)',
                     color: '#ffffff',
@@ -374,7 +375,7 @@ export default function Home() {
                 {/* Subtitle — 30.5% size so rendered width ≈ "23 YEARS" width */}
                 <div style={{ overflow: 'hidden' }}>
                   <div style={{
-                    fontFamily: "'HelveticaLTPro-Bold', 'Helvetica Neue', Helvetica, Arial, sans-serif",
+                    fontFamily: "'helvetica-lt-pro', 'Helvetica Neue', Helvetica, Arial, sans-serif",
                     fontWeight: 700,
                     fontSize: 'min(1.53vw, 2.72vh)',
                     color: '#ffffff',
@@ -469,7 +470,7 @@ export default function Home() {
           onAbout={() => navigate('/about')}
           onProducts={() => navigate('/products')}
           onOurWork={() => navigate('/our-work')}
-          onContact={() => { const vh = window.innerHeight; scrollTo(vh * 6 - 256) }}
+          onContact={() => navigate('/contact')}
           onBookNow={() => setBookNowOpen(true)}
         />
       </div>

@@ -299,7 +299,7 @@ export default function GalleryModal({ item, onClose }: Props) {
           {/* Title */}
           <h2 style={{
             fontFamily:
-              "'HelveticaLTPro-Bold', 'Helvetica Neue', Helvetica, Arial, sans-serif",
+              "'helvetica-lt-pro', 'Helvetica Neue', Helvetica, Arial, sans-serif",
             fontWeight: 900,
             fontSize: 'clamp(2rem, 3.8vw, 3.4rem)',
             lineHeight: 1.06,

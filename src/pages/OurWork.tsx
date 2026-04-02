@@ -2,42 +2,22 @@ import { useNavigate } from 'react-router-dom'
 import Navbar from '../components/Navbar'
 import SiteFooter from '../components/SiteFooter'
 import GalleryModal, { type GalleryItem } from '../components/GalleryModal'
-import { useState, useEffect, useRef } from 'react'
+import BookNowPanel from '../components/BookNowPanel'
+import { useState, useEffect, useLayoutEffect, useRef } from 'react'
 import { useSmoothScroll } from '../hooks/useSmoothScroll'
 import { HoverSlider, TextStaggerHover, HoverSliderImageWrap, HoverSliderImage } from '../components/HoverSlider'
 import { OUR_WORK_PROJECTS } from '../data/ourWorkGallery'
 
-// Build slides from data manifest — pads with legacy items if fewer than needed
-const LEGACY_SLIDES = [
-  { label: 'Kitchen Remodeling',    number: '01', img: '/Roof Shingles.png' },
-  { label: 'Bathroom Renovation',   number: '02', img: '/Spray Painting.png' },
-  { label: 'Room Additions',        number: '03', img: '/Roof Shingles.png' },
-  { label: 'Custom Home Remodeling',number: '04', img: '/Spray Painting.png' },
-  { label: 'ADU Construction',      number: '05', img: '/Roof Shingles.png' },
-  { label: 'Commercial Projects',   number: '06', img: '/Spray Painting.png' },
-]
-
-const SLIDES = (() => {
-  const fromData = OUR_WORK_PROJECTS.map((p, i) => ({
-    label: p.title,
-    number: String(i + 1).padStart(2, '0'),
-    img: p.images[0],
-    gallery: {
-      title: p.title,
-      description: p.description,
-      images: p.images,
-    } satisfies GalleryItem,
-  }))
-
-  // Fill remaining slots with legacy placeholders (no gallery)
-  const legacy = LEGACY_SLIDES.slice(fromData.length).map((s, i) => ({
-    ...s,
-    number: String(fromData.length + i + 1).padStart(2, '0'),
-    gallery: null as GalleryItem | null,
-  }))
-
-  return [...fromData, ...legacy]
-})()
+const SLIDES = OUR_WORK_PROJECTS.map((p, i) => ({
+  label: p.title,
+  number: String(i + 1).padStart(2, '0'),
+  img: p.images[0],
+  gallery: {
+    title: p.title,
+    description: p.description,
+    images: p.images,
+  } satisfies GalleryItem,
+}))
 
 export default function OurWork() {
   const navigate = useNavigate()
@@ -47,6 +27,13 @@ export default function OurWork() {
   const [scrollY, setScrollY] = useState(0)
   const scrollStopTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const [galleryItem, setGalleryItem] = useState<GalleryItem | null>(null)
+  const [bookNowOpen, setBookNowOpen] = useState(false)
+
+  useLayoutEffect(() => {
+    window.scrollTo(0, 0)
+    document.documentElement.scrollTop = 0
+    setScrollY(0)
+  }, [])
 
   useEffect(() => {
     if (!listRef.current) return
@@ -97,13 +84,16 @@ export default function OurWork() {
     <div style={{ width: '100vw', backgroundColor: '#ffffff', position: 'relative' }}>
       <Navbar
         visible
+        bare={footerVisible}
         inverted={false}
+        onBookNow={() => setBookNowOpen(true)}
         onHome={() => navigate('/')}
         onAbout={() => navigate('/about')}
         onProducts={() => navigate('/products')}
-        onOurWork={() => {}}
-        onContact={() => navigate('/')}
+        onOurWork={() => window.scrollTo(0, 0)}
+        onContact={() => navigate('/contact')}
       />
+      <BookNowPanel open={bookNowOpen} onClose={() => setBookNowOpen(false)} />
 
       {/* Scroll space: list overflow + footer */}
       <div style={{ height: `calc(100vh + ${listOverflow}px + 100vh)` }} />
@@ -149,15 +139,17 @@ export default function OurWork() {
                   <TextStaggerHover
                     text={slide.label}
                     index={i}
-                    onSelect={slide.gallery ? () => setGalleryItem(slide.gallery) : undefined}
+                    onSelect={() => setGalleryItem(slide.gallery)}
                     style={{
-                      fontFamily: "'HelveticaLTPro-Bold', 'Helvetica Neue', Helvetica, Arial, sans-serif",
+                      fontFamily: "'helvetica-lt-pro', 'Helvetica Neue', Helvetica, Arial, sans-serif",
                       fontWeight: 900,
                       fontSize: 'clamp(2rem, 4vw, 5.5rem)',
                       color: '#111',
                       letterSpacing: '-0.02em',
                       lineHeight: 1.15,
-                      cursor: slide.gallery ? 'pointer' : 'default',
+                      cursor: 'pointer',
+                      flex: '1 1 0%',
+                      minWidth: 0,
                     } as React.CSSProperties}
                   />
                 </div>
@@ -192,8 +184,9 @@ export default function OurWork() {
           onHome={() => navigate('/')}
           onAbout={() => navigate('/about')}
           onProducts={() => navigate('/products')}
-          onOurWork={() => {}}
-          onContact={() => scrollTo(listOverflow + window.innerHeight)}
+          onOurWork={() => window.scrollTo(0,0)}
+          onContact={() => navigate('/contact')}
+
           onBookNow={() => navigate('/')}
         />
       </div>

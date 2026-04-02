@@ -61,7 +61,7 @@ export default function SiteFooter({ entered, onHome, onAbout, onProducts, onOur
         {/* Newsletter */}
         <div>
           <p style={{
-            fontFamily: "'HelveticaLTPro-Bold', 'Helvetica Neue', Helvetica, Arial, sans-serif",
+            fontFamily: "'helvetica-lt-pro', 'Helvetica Neue', Helvetica, Arial, sans-serif",
             fontWeight: 700, fontSize: 'min(3.2vw, 5.7vh)',
             color: '#ffffff', margin: '0 0 1.2rem 0',
           }}>

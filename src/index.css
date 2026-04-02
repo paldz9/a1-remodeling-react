@@ -1,6 +1,17 @@
 @import "tailwindcss";
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap');
 
+/* Helvetica LT Pro — drop the font file into /public/fonts/ and uncomment */
+/* @font-face {
+  font-family: 'HelveticaLTPro-Bold';
+  src: url('/fonts/HelveticaLTPro-Bold.otf') format('opentype'),
+       url('/fonts/HelveticaLTPro-Bold.ttf') format('truetype'),
+       url('/fonts/HelveticaLTPro-Bold.woff2') format('woff2');
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+} */
+
 @theme {
   --color-background: #ffffff;
   --color-foreground: #111111;
