@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useSmoothScroll } from '../hooks/useSmoothScroll'
 import Navbar from '../components/Navbar'
 import IntroVideo from '../components/IntroVideo'
@@ -6,20 +7,24 @@ import HeroSlider from '../components/HeroSlider'
 import ContactBar from '../components/ContactBar'
 import BookNowPanel from '../components/BookNowPanel'
 import SideForm from '../components/SideForm'
+import SiteFooter from '../components/SiteFooter'
 
 const EASE = 'cubic-bezier(0.65, 0.01, 0.05, 0.99)'
 
 function easeInOut(t: number) { return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t }
 
 export default function Home() {
+  const navigate = useNavigate()
   const [introDone, setIntroDone] = useState(false)
   const [bookNowOpen, setBookNowOpen] = useState(false)
   const { jumpTo, scrollTo } = useSmoothScroll()
 
   const section1Ref = useRef<HTMLDivElement>(null)
+  const section4Ref = useRef<HTMLDivElement>(null)
   const mapPlaceholderRef = useRef<HTMLDivElement>(null)
   const autoPulledRef = useRef(false)
   const autoPulled4Ref = useRef(false)
+  const scrollStopTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const [parallaxY, setParallaxY] = useState(0)
   const [scale, setScale] = useState(1)
@@ -61,10 +66,13 @@ export default function Home() {
       const newS4 = Math.min(Math.max((scrolled - s4Start) / s4Range, 0), 1)
       setSection4Progress(newS4)
 
-      // Soft magnet at 20%: pull section 4 into view naturally
+      // Soft magnet at 20%: pull section 4 to exact sticking point
       if (newS4 >= 0.2 && !autoPulled4Ref.current) {
         autoPulled4Ref.current = true
-        scrollTo(s4Start + s4Range)
+        const target = section4Ref.current
+          ? section4Ref.current.offsetTop - 64
+          : s4Start + s4Range
+        scrollTo(target)
       }
       // Reset when scrolled back before entrance
       if (newS4 < 0.05) {
@@ -93,7 +101,41 @@ export default function Home() {
       }
     }
     window.addEventListener('scroll', onScroll, { passive: true })
-    return () => window.removeEventListener('scroll', onScroll)
+
+    // Wheel-stop snap: uses wheel (real user input) not scroll (also fired by RAF loop)
+    const onWheelStop = () => {
+      if (!section4Ref.current) return
+      const vh = window.innerHeight
+      const s4Height = vh - 64
+      const stickAt = section4Ref.current.offsetTop - 64
+      const absDelta = Math.abs(window.scrollY - stickAt)
+      const nearHalf = absDelta > s4Height * (3 / 8) && absDelta < s4Height * (5 / 8)
+
+      // No snap when close to half — let user scroll freely through
+      if (nearHalf) return
+      if (absDelta < s4Height * (5 / 6)) scrollTo(stickAt)
+    }
+
+    const onWheel = () => {
+      if (scrollStopTimerRef.current) clearTimeout(scrollStopTimerRef.current)
+      if (!section4Ref.current) { scrollStopTimerRef.current = setTimeout(onWheelStop, 90); return }
+
+      const vh = window.innerHeight
+      const s4Height = vh - 64
+      const stickAt = section4Ref.current.offsetTop - 64
+      const absDelta = Math.abs(window.scrollY - stickAt)
+
+      // ≤1/6 visible → snap fast | ~1/2 visible → no snap | ≥1/4 visible → snap slower
+      const delay = absDelta > s4Height * (5 / 6) ? 90 : 300
+      scrollStopTimerRef.current = setTimeout(onWheelStop, delay)
+    }
+
+    window.addEventListener('wheel', onWheel, { passive: true })
+    return () => {
+      window.removeEventListener('scroll', onScroll)
+      window.removeEventListener('wheel', onWheel)
+      if (scrollStopTimerRef.current) clearTimeout(scrollStopTimerRef.current)
+    }
   }, [scrollTo])
 
 
@@ -109,7 +151,6 @@ export default function Home() {
   const ep = easeInOut(section3Progress)
 
   // Section 4 entrance
-  const ep4 = easeInOut(section4Progress)
   const section4Entered = section4Progress > 0.05
 
   // Section 5 uncover — section 4 slides up, section 5 revealed beneath
@@ -134,7 +175,7 @@ export default function Home() {
 
   return (
     <div>
-      <Navbar visible={introDone} onBookNow={() => setBookNowOpen(true)} inverted={navInverted} />
+      <Navbar visible={introDone} bare={section5Active} onBookNow={() => setBookNowOpen(true)} onContact={() => { const vh = window.innerHeight; scrollTo(vh * 6 - 256) }} onHome={() => scrollTo(0)} onAbout={() => navigate('/about')} inverted={navInverted} />
 
       {/* Scroll space for section 1 */}
       <div style={{ height: '100vh' }} />
@@ -269,11 +310,11 @@ export default function Home() {
             │         Window.jpg full-width banner               │  ← bottom, flex:1
             └────────────────────────────────────────────────────┘
           Window is NOT inside the right column — it spans under both columns. */}
-      <div style={{
+      <div ref={section4Ref} style={{
         position: 'sticky', top: '64px', zIndex: 36,
-        backgroundColor: '#000000', height: 'calc(100vh - 64px)',
+        backgroundColor: '#252525', height: 'calc(100vh - 64px)',
         overflow: 'hidden', display: 'flex', flexDirection: 'column',
-        transform: ep5 > 0 ? `translateY(${-ep5 * 100}%)` : undefined,
+        transform: ep5 > 0 ? `translateY(calc(${-ep5 * 100}% - ${ep5 * 64}px))` : undefined,
         willChange: 'transform',
       }}>
         {/* Content wrapper: width shrinks when side form opens */}
@@ -417,143 +458,18 @@ export default function Home() {
           Hidden via opacity/pointerEvents until section 4 actually starts sliding —
           otherwise the black background would cover sections 1–3 from page load. */}
       <div style={{
-        position: 'fixed', top: '64px', left: 0, right: 0, zIndex: 35,
-        backgroundColor: '#000000', height: 'calc(100vh - 64px)',
-        overflow: 'hidden', display: 'flex',
+        position: 'fixed', top: 0, left: 0, right: 0, zIndex: 35,
+        height: '100vh',
         opacity: section5Visible ? 1 : 0,
         pointerEvents: section5Visible ? 'all' : 'none',
       }}>
-
-        {/* ── LEFT: Giant company name ── */}
-        <div style={{
-          flex: '0 0 auto',
-          display: 'flex', flexDirection: 'column',
-          justifyContent: 'center',
-          padding: '3rem 2rem 3rem 4rem',
-          lineHeight: 0.92,
-        }}>
-          {/* Each word is sized so its rendered width ≈ the same as "A1"
-              Helvetica Bold cap ratios: A1≈2.2em, HOME≈4.1em, REMODELING≈9.8em, INC≈3.0em */}
-          {(['A1', 'HOME', 'REMODELING', 'INC'] as const).map((word, i) => {
-            const sizes: Record<string, string> = {
-              'A1':          'min(15.9vw, 28.27vh)',
-              'HOME':        'min(8.5vw,  15.11vh)',
-              'REMODELING':  'min(3.57vw,  6.35vh)',
-              'INC':         'min(11.7vw, 20.8vh)',
-            }
-            const delays = [0, 80, 160, 240]
-            return (
-              <div key={word} style={{ overflow: 'hidden' }}>
-                <div style={{
-                  fontFamily: "'HelveticaLTPro-Bold', 'Helvetica Neue', Helvetica, Arial, sans-serif",
-                  fontWeight: 700,
-                  fontSize: sizes[word],
-                  color: '#ffffff',
-                  letterSpacing: '-0.02em',
-                  transform: section5Entered ? 'translateY(0) rotate(0deg)' : 'translateY(110%) rotate(3deg)',
-                  opacity: section5Entered ? 1 : 0,
-                  transition: `transform 1.2s ${EASE} ${delays[i]}ms, opacity 0.8s ease ${delays[i]}ms`,
-                  transformOrigin: 'left bottom',
-                }}>
-                  {word}
-                </div>
-              </div>
-            )
-          })}
-        </div>
-
-        {/* ── RIGHT: Newsletter + Nav + Contact + Footer ── */}
-        <div style={{
-          flex: 1,
-          display: 'flex', flexDirection: 'column',
-          justifyContent: 'space-between',
-          padding: '3.5rem 4rem 3rem 3rem',
-          opacity: section5Entered ? 1 : 0,
-          transform: section5Entered ? 'translateY(0)' : 'translateY(20px)',
-          transition: `opacity 1.0s ease 0.3s, transform 1.0s ${EASE} 0.3s`,
-        }}>
-
-          {/* Newsletter */}
-          <div>
-            <p style={{
-              fontFamily: "'HelveticaLTPro-Bold', 'Helvetica Neue', Helvetica, Arial, sans-serif",
-              fontWeight: 700, fontSize: 'min(2vw, 3.56vh)',
-              color: '#ffffff', margin: '0 0 1rem 0',
-            }}>
-              Subscribe to our Newsletter!
-            </p>
-            <div style={{ display: 'flex', alignItems: 'flex-end', gap: '1rem', borderBottom: '1px solid rgba(255,255,255,0.4)', paddingBottom: '0.5rem' }}>
-              <input
-                type="email"
-                placeholder="Enter your email address"
-                style={{
-                  flex: 1, background: 'transparent', border: 'none', outline: 'none',
-                  fontFamily: "'Poppins', sans-serif", fontWeight: 300,
-                  fontSize: 'min(1vw, 1.78vh)', color: 'rgba(255,255,255,0.5)',
-                  padding: '0.25rem 0',
-                }}
-                onFocus={e => (e.currentTarget.style.color = '#ffffff')}
-                onBlur={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.5)')}
-              />
-              <button style={{
-                background: 'transparent', border: 'none', cursor: 'pointer',
-                color: '#ffffff', fontSize: 'min(1.2vw, 2.13vh)', padding: '0 0.25rem',
-                lineHeight: 1,
-              }}>→</button>
-            </div>
-          </div>
-
-          {/* Nav + Contact */}
-          <div style={{ display: 'flex', gap: '4rem' }}>
-            {/* Nav links */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-              {['Home', 'About us', 'Products', 'Our work', 'Contact', 'Book online'].map(link => (
-                <a key={link} href={`#${link.toLowerCase().replace(' ', '')}`} style={{
-                  fontFamily: "'Poppins', sans-serif", fontWeight: 400,
-                  fontSize: 'min(1.1vw, 1.96vh)', color: 'rgba(255,255,255,0.75)',
-                  textDecoration: 'none', lineHeight: 1.6,
-                  transition: 'color 0.2s ease',
-                }}
-                  onMouseEnter={e => (e.currentTarget.style.color = '#ffffff')}
-                  onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.75)')}
-                >{link}</a>
-              ))}
-            </div>
-
-            {/* Contact info */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              <p style={{
-                fontFamily: "'Poppins', sans-serif", fontWeight: 400,
-                fontSize: 'min(0.85vw, 1.51vh)', color: 'rgba(255,255,255,0.7)',
-                margin: 0, lineHeight: 1.6,
-              }}>
-                400 Corporate Pointe Suite 300,<br />Culver City, CA 90230
-              </p>
-              <p style={{
-                fontFamily: "'Poppins', sans-serif", fontWeight: 400,
-                fontSize: 'min(0.85vw, 1.51vh)', color: 'rgba(255,255,255,0.7)',
-                margin: 0,
-              }}>(424) 345-2274</p>
-              <p style={{
-                fontFamily: "'Poppins', sans-serif", fontWeight: 400,
-                fontSize: 'min(0.85vw, 1.51vh)', color: 'rgba(255,255,255,0.7)',
-                margin: 0,
-              }}>customercare@a1hrinc.com</p>
-            </div>
-          </div>
-
-          {/* Footer */}
-          <div style={{ textAlign: 'right' }}>
-            <p style={{
-              fontFamily: "'Poppins', sans-serif", fontWeight: 300,
-              fontSize: 'min(0.75vw, 1.33vh)', color: 'rgba(255,255,255,0.4)',
-              margin: 0, lineHeight: 1.8,
-            }}>
-              @2026 A1 Home Remodeling Inc<br />Website by Paldz
-            </p>
-          </div>
-
-        </div>
+        <SiteFooter
+          entered={section5Entered}
+          onHome={() => scrollTo(0)}
+          onAbout={() => navigate('/about')}
+          onContact={() => { const vh = window.innerHeight; scrollTo(vh * 6 - 256) }}
+          onBookNow={() => setBookNowOpen(true)}
+        />
       </div>
 
       {/* Gap filler — black div that bridges eased map bottom → linear section 3 top */}

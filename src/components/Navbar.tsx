@@ -131,7 +131,6 @@ function BookOnlineButton({ onClick, inverted = false }: { onClick?: () => void;
         paddingRight: '1.75rem',
         paddingTop: '0.5rem',
         paddingBottom: '0.5rem',
-        transition: 'background-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease',
         fontFamily: 'monospace',
         minWidth: '120px',
         textDecoration: 'none',
@@ -142,8 +141,8 @@ function BookOnlineButton({ onClick, inverted = false }: { onClick?: () => void;
   )
 }
 
-export default function Navbar({ visible = true, onBookNow, inverted = false }: { visible?: boolean; onBookNow?: () => void; inverted?: boolean }) {
-  const bg = inverted ? '#111111' : '#ffffff'
+export default function Navbar({ visible = true, bare = false, onBookNow, onContact, onHome, onAbout, inverted = false }: { visible?: boolean; bare?: boolean; onBookNow?: () => void; onContact?: () => void; onHome?: () => void; onAbout?: () => void; inverted?: boolean }) {
+  const bg = bare ? '#000000' : inverted ? '#111111' : '#ffffff'
   const border = inverted ? '#333333' : '#e5e7eb'
   const text = inverted ? '#ffffff' : '#111111'
   const muted = inverted ? 'rgba(255,255,255,0.6)' : '#6b7280'
@@ -156,13 +155,13 @@ export default function Navbar({ visible = true, onBookNow, inverted = false }: 
         opacity: visible ? 1 : 0,
         transition: 'opacity 0.6s ease, background-color 0.5s ease, border-color 0.5s ease',
         backgroundColor: bg,
-        borderBottom: `1px solid ${border}`,
+        borderBottom: bare ? 'none' : `1px solid ${border}`,
       }}
     >
       <div className="flex h-16 items-center justify-center">
 
         {/* ── All items centered together ── */}
-        <div className="max-md:hidden flex items-center gap-6">
+        <div className="max-md:hidden flex items-center gap-6" style={{ opacity: bare ? 0 : 1, transition: 'opacity 0.5s ease', pointerEvents: bare ? 'none' : 'auto' }}>
 
           {/* Company name */}
           <a href="/" style={{ color: text, transition: 'color 0.5s ease' }} className="select-none text-sm font-bold tracking-widest uppercase whitespace-nowrap leading-none flex items-center">
@@ -176,6 +175,7 @@ export default function Navbar({ visible = true, onBookNow, inverted = false }: 
               <NavigationMenuItem>
                 <NavigationMenuLink asChild>
                   <a href="#home" className={linkClass} style={{ color: muted, transition: 'color 0.5s ease' }}
+                    onClick={onHome ? (e => { e.preventDefault(); onHome() }) : undefined}
                     onMouseEnter={e => (e.currentTarget.style.color = text)} onMouseLeave={e => (e.currentTarget.style.color = muted)}>Home</a>
                 </NavigationMenuLink>
               </NavigationMenuItem>
@@ -184,6 +184,7 @@ export default function Navbar({ visible = true, onBookNow, inverted = false }: 
               <NavigationMenuItem>
                 <NavigationMenuLink asChild>
                   <a href="#about" className={linkClass} style={{ color: muted, transition: 'color 0.5s ease' }}
+                    onClick={onAbout ? (e => { e.preventDefault(); onAbout() }) : undefined}
                     onMouseEnter={e => (e.currentTarget.style.color = text)} onMouseLeave={e => (e.currentTarget.style.color = muted)}>About us</a>
                 </NavigationMenuLink>
               </NavigationMenuItem>
@@ -251,6 +252,7 @@ export default function Navbar({ visible = true, onBookNow, inverted = false }: 
           </NavigationMenu>
 
           <a href="#contact" className={linkClass} style={{ color: muted, transition: 'color 0.5s ease' }}
+            onClick={onContact ? (e => { e.preventDefault(); onContact() }) : undefined}
             onMouseEnter={e => (e.currentTarget.style.color = text)} onMouseLeave={e => (e.currentTarget.style.color = muted)}>Contact</a>
 
           {/* Book Online */}
