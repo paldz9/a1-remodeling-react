@@ -269,7 +269,7 @@ export default function SideForm({ visible }: Props) {
   }
 
   return (
-    <div ref={outerRef} data-scroll-independent style={{
+    <div ref={outerRef} data-scroll-independent className="max-md:hidden" style={{
       position: 'fixed',
       top: '64px', right: 0,
       height: 'calc(100vh - 64px)',

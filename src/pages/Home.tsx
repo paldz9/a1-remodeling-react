@@ -519,7 +519,7 @@ export default function Home() {
 
       <SideForm visible={navInverted && !section5Active} />
 
-      <BookNowPanel open={bookNowOpen} onClose={() => setBookNowOpen(false)} />
+      <BookNowPanel open={bookNowOpen} onClose={() => setBookNowOpen(false)} onOpen={() => setBookNowOpen(true)} />
 
       {!introDone && <IntroVideo onEnd={() => { jumpTo(0); setIntroDone(true) }} />}
     </div>

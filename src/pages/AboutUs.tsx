@@ -63,7 +63,7 @@ export default function AboutUs() {
         onOurWork={() => navigate('/our-work')}
         onContact={() => navigate('/contact')}
       />
-      <BookNowPanel open={bookNowOpen} onClose={() => setBookNowOpen(false)} />
+      <BookNowPanel open={bookNowOpen} onClose={() => setBookNowOpen(false)} onOpen={() => setBookNowOpen(true)} />
 
       {/* Main layout — below navbar, two columns */}
       <div style={{

@@ -116,7 +116,7 @@ export default function Products() {
         onOurWork={() => navigate('/our-work')}
         onContact={() => navigate('/contact')}
       />
-      <BookNowPanel open={bookNowOpen} onClose={() => setBookNowOpen(false)} />
+      <BookNowPanel open={bookNowOpen} onClose={() => setBookNowOpen(false)} onOpen={() => setBookNowOpen(true)} />
 
       {/* Scroll space: list overflow + footer */}
       <div style={{ height: `calc(100vh + ${listOverflow}px + 100vh)` }} />

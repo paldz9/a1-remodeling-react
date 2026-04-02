@@ -22,6 +22,9 @@ export function useSmoothScroll() {
   }, [])
 
   useEffect(() => {
+    // On touch devices, let native scroll handle everything
+    if (window.matchMedia('(pointer: coarse)').matches) return
+
     const state = stateRef.current
     let rafId: number | null = null
     const ease = 0.07
@@ -62,7 +65,12 @@ export function useSmoothScroll() {
   }, [])
 
   const scrollTo = useCallback((y: number) => {
-    stateRef.current.target = Math.max(0, Math.min(y, document.body.scrollHeight - window.innerHeight))
+    const clamped = Math.max(0, Math.min(y, document.body.scrollHeight - window.innerHeight))
+    if (window.matchMedia('(pointer: coarse)').matches) {
+      window.scrollTo({ top: clamped, behavior: 'smooth' })
+    } else {
+      stateRef.current.target = clamped
+    }
   }, [])
 
   return { jumpTo, scrollTo, lockAt, unlock }

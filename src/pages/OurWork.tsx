@@ -93,7 +93,7 @@ export default function OurWork() {
         onOurWork={() => window.scrollTo(0, 0)}
         onContact={() => navigate('/contact')}
       />
-      <BookNowPanel open={bookNowOpen} onClose={() => setBookNowOpen(false)} />
+      <BookNowPanel open={bookNowOpen} onClose={() => setBookNowOpen(false)} onOpen={() => setBookNowOpen(true)} />
 
       {/* Scroll space: list overflow + footer */}
       <div style={{ height: `calc(100vh + ${listOverflow}px + 100vh)` }} />

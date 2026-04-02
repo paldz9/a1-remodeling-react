@@ -141,6 +141,7 @@ function BookOnlineButton({ onClick, inverted = false }: { onClick?: () => void;
 }
 
 export default function Navbar({ visible = true, bare = false, onBookNow, onContact, onHome, onAbout, onProducts, onOurWork, inverted = false }: { visible?: boolean; bare?: boolean; onBookNow?: () => void; onContact?: () => void; onHome?: () => void; onAbout?: () => void; onProducts?: () => void; onOurWork?: () => void; inverted?: boolean }) {
+  const [mobileOpen, setMobileOpen] = useState(false)
   const bg = bare ? '#000000' : inverted ? '#111111' : '#ffffff'
   const border = inverted ? '#333333' : '#e5e7eb'
   const text = inverted ? '#ffffff' : '#111111'
@@ -263,12 +264,17 @@ export default function Navbar({ visible = true, bare = false, onBookNow, onCont
 
         {/* ── Mobile: company name left, hamburger right ── */}
         <div className="md:hidden flex items-center justify-between w-full">
-          <a href="/" className="text-sm font-bold tracking-widest uppercase text-gray-900">
+          <span
+            onClick={() => { onHome?.(); setMobileOpen(false) }}
+            style={{ color: bare ? '#ffffff' : '#111111', cursor: 'pointer' }}
+            className="text-sm font-bold tracking-widest uppercase select-none"
+          >
             A1 Home Remodeling
-          </a>
-          <Popover>
+          </span>
+          <Popover open={mobileOpen} onOpenChange={setMobileOpen}>
             <PopoverTrigger asChild>
-              <Button className="group size-8" variant="ghost" size="icon">
+              <Button className="group size-8" variant="ghost" size="icon"
+                style={{ color: bare ? '#ffffff' : '#111111' }}>
                 <svg className="pointer-events-none" width={16} height={16} viewBox="0 0 24 24"
                   fill="none" stroke="currentColor" strokeWidth="2"
                   strokeLinecap="round" strokeLinejoin="round">
@@ -278,21 +284,54 @@ export default function Navbar({ visible = true, bare = false, onBookNow, onCont
                 </svg>
               </Button>
             </PopoverTrigger>
-            <PopoverContent align="end" className="w-56 p-2">
+            <PopoverContent align="end" style={{ width: '200px', padding: '8px', backgroundColor: '#ffffff', border: '1px solid #e5e7eb' }}>
               <nav className="flex flex-col gap-1">
-                <a href="#home"    className="px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md">Home</a>
-                <a href="#about"   className="px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md">About us</a>
-                <div className="px-3 pt-2 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Products</div>
-                {PRODUCTS.map(item => (
-                  <a key={item.label} href={item.href} className="px-5 py-1.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md">{item.label}</a>
+                {[
+                  { label: 'Home',     action: onHome },
+                  { label: 'About us', action: onAbout },
+                  { label: 'Products', action: onProducts },
+                  { label: 'Our Work', action: onOurWork },
+                  { label: 'Contact',  action: onContact },
+                ].map(({ label, action }) => (
+                  <button
+                    key={label}
+                    onClick={() => { action?.(); setMobileOpen(false) }}
+                    style={{
+                      padding: '10px 12px',
+                      fontSize: '14px',
+                      fontWeight: 500,
+                      color: '#444444',
+                      backgroundColor: 'transparent',
+                      border: 'none',
+                      borderRadius: '6px',
+                      textAlign: 'left',
+                      cursor: 'pointer',
+                      width: '100%',
+                    }}
+                    onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = '#f3f4f6'; (e.currentTarget as HTMLButtonElement).style.color = '#111111' }}
+                    onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.backgroundColor = 'transparent'; (e.currentTarget as HTMLButtonElement).style.color = '#444444' }}
+                  >
+                    {label}
+                  </button>
                 ))}
-                <div className="px-3 pt-2 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Our Work</div>
-                {OUR_WORK.map(item => (
-                  <a key={item.label} href={item.href} className="px-5 py-1.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md">{item.label}</a>
-                ))}
-                <a href="#contact" className="px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md">Contact</a>
-                <div className="border-t border-gray-100 my-1" />
-                <a href="#contact" className="px-3 py-2 text-sm font-semibold text-center bg-gray-900 text-white rounded-md">Book Online</a>
+                <div style={{ borderTop: '1px solid #e5e7eb', margin: '4px 0' }} />
+                <button
+                  onClick={() => { onBookNow?.(); setMobileOpen(false) }}
+                  style={{
+                    padding: '10px 12px',
+                    fontSize: '14px',
+                    fontWeight: 600,
+                    color: '#ffffff',
+                    backgroundColor: '#111111',
+                    border: 'none',
+                    borderRadius: '6px',
+                    textAlign: 'center',
+                    cursor: 'pointer',
+                    width: '100%',
+                  }}
+                >
+                  Book Online
+                </button>
               </nav>
             </PopoverContent>
           </Popover>

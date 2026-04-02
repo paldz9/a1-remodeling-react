@@ -95,6 +95,7 @@ function BookNowButton() {
 interface Props {
   open: boolean
   onClose: () => void
+  onOpen?: () => void
 }
 
 const BUDGET_OPTIONS = [
@@ -108,9 +109,17 @@ const BUDGET_OPTIONS = [
 
 const FONT = "'Poppins', sans-serif"
 
-export default function BookNowPanel({ open, onClose }: Props) {
+export default function BookNowPanel({ open, onClose, onOpen }: Props) {
   const [visible, setVisible] = useState(false)
   const [contentIn, setContentIn] = useState(false)
+  const [isMobile, setIsMobile] = useState(() => window.matchMedia('(pointer: coarse)').matches)
+
+  useEffect(() => {
+    const mq = window.matchMedia('(pointer: coarse)')
+    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches)
+    mq.addEventListener('change', handler)
+    return () => mq.removeEventListener('change', handler)
+  }, [])
 
   useEffect(() => {
     if (open) {
@@ -124,137 +133,210 @@ export default function BookNowPanel({ open, onClose }: Props) {
     }
   }, [open])
 
-  if (!visible) return null
-
   return (
-    <div
-      style={{
-        position: 'fixed', inset: 0, zIndex: 100, overflow: 'hidden',
-        transform: contentIn ? 'translateY(0)' : 'translateY(100%)',
-        transition: contentIn
-          ? 'transform 0.75s cubic-bezier(0.16, 1, 0.3, 1)'
-          : 'transform 0.6s cubic-bezier(0.55, 0, 1, 0.45)',
-      }}
-    >
-      {/* Background video */}
-      <video
-        autoPlay muted loop playsInline
-        style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', zIndex: 0 }}
-        src="/welcome background.mp4"
-      />
+    <>
+      {/* Floating FAB — mobile only, hidden when panel is open */}
+      {onOpen && !open && (
+        <button
+          onClick={onOpen}
+          className="md:hidden"
+          style={{
+            position: 'fixed',
+            bottom: '1.5rem',
+            right: '1.5rem',
+            zIndex: 90,
+            width: '56px',
+            height: '56px',
+            borderRadius: '50%',
+            backgroundColor: '#111111',
+            border: 'none',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            boxShadow: '0 4px 16px rgba(0,0,0,0.35)',
+          }}
+          aria-label="Book Now"
+        >
+          <span className="material-symbols-outlined" style={{ color: '#ffffff', fontSize: '26px' }}>
+            person_add
+          </span>
+        </button>
+      )}
 
-      {/* Dim */}
-      <div style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(0,0,0,0.55)', zIndex: 1 }} />
+      {/* Panel */}
+      {visible && (
+        <div
+          style={{
+            position: 'fixed', inset: 0, zIndex: 100, overflow: 'hidden',
+            transform: contentIn ? 'translateY(0)' : 'translateY(100%)',
+            transition: contentIn
+              ? 'transform 0.75s cubic-bezier(0.16, 1, 0.3, 1)'
+              : 'transform 0.6s cubic-bezier(0.55, 0, 1, 0.45)',
+          }}
+        >
+          {/* Background video */}
+          <video
+            autoPlay muted loop playsInline
+            style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', zIndex: 0 }}
+            src="/welcome background.mp4"
+          />
 
-      {/* Bottom gradient */}
-      <div style={{
-        position: 'absolute', bottom: 0, left: 0, right: 0, height: '260px', zIndex: 2, pointerEvents: 'none',
-        background: 'linear-gradient(to bottom, transparent, rgba(0,0,0,0.97))',
-      }} />
+          {/* Dim */}
+          <div style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(0,0,0,0.55)', zIndex: 1 }} />
 
-      {/* Close */}
-      <button
-        onClick={onClose}
-        style={{
-          position: 'absolute', top: '1.5rem', right: '2rem', zIndex: 10,
-          background: 'none', border: 'none', cursor: 'pointer',
-          color: 'rgba(255,255,255,0.5)', fontSize: '1.4rem', lineHeight: 1, padding: '0.25rem',
-          transition: 'color 0.2s',
-        }}
-        onMouseEnter={e => (e.currentTarget.style.color = '#fff')}
-        onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.5)')}
-        aria-label="Close"
-      >✕</button>
-
-      {/* Page content */}
-      <div
-        style={{
-          position: 'relative', zIndex: 3, height: '100%',
-          display: 'flex', flexDirection: 'column',
-          padding: '3.5rem 5% 2rem 5%',
-          opacity: contentIn ? 1 : 0,
-          transform: contentIn ? 'translateY(0)' : 'translateY(36px)',
-          transition: 'opacity 0.55s ease 0.2s, transform 0.55s ease 0.2s',
-          overflowY: 'auto',
-          boxSizing: 'border-box',
-        }}
-      >
-        {/* Header */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2.75rem' }}>
-          <h2 style={{
-            fontFamily: FONT, fontWeight: 700,
-            fontSize: 'clamp(1.6rem, 2.8vw, 2.1rem)',
-            color: '#ffffff', margin: 0, lineHeight: 1.2,
-          }}>
-            Let's bring your home to life.
-          </h2>
-          <p style={{
-            fontFamily: FONT, fontWeight: 300,
-            fontSize: '0.875rem', color: 'rgba(255,255,255,0.75)',
-            maxWidth: '360px', textAlign: 'right', lineHeight: 1.75, margin: 0,
-          }}>
-            Your home transformation begins with a conversation. Start by filling out the form and telling us about your ideas, your needs, and your vision.
-          </p>
-        </div>
-
-        {/* Main: form + video side by side */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4rem', alignItems: 'stretch', flex: 1 }}>
-
-          {/* Form */}
-          <form onSubmit={e => e.preventDefault()} style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-
-            <Row>
-              <Field label="First Name*" type="text" />
-              <Field label="Last Name*" type="text" />
-            </Row>
-
-            <Row>
-              <Field label="Email*" type="email" />
-              <Field label="Phone*" type="tel" />
-            </Row>
-
-            {/* Address — full width */}
-            <div style={{ marginBottom: '2.25rem' }}>
-              <Field label="Address*" type="text" />
-            </div>
-
-            <Row>
-              <Field label="Zip/Postal Code*" type="text" />
-              <SelectField label="Budget Range" options={BUDGET_OPTIONS} />
-            </Row>
-
-            <div style={{ marginBottom: '2.75rem' }}>
-              <TextareaField label="Messages /Notes*" />
-            </div>
-
-            <div style={{ marginTop: 'auto' }}>
-              <BookNowButton />
-            </div>
-          </form>
-
-          {/* Video — fixed height, only vertical crop */}
+          {/* Bottom gradient */}
           <div style={{
-            borderRadius: '14px', overflow: 'hidden',
-            boxShadow: '0 8px 40px rgba(0,0,0,0.5)',
-            height: '480px',
-          }}>
-            <video
-              autoPlay muted loop playsInline
-              style={{ width: '100%', height: '100%', display: 'block', objectFit: 'cover', objectPosition: 'center center' }}
-              src="/form-welcome.mp4"
-            />
+            position: 'absolute', bottom: 0, left: 0, right: 0, height: '260px', zIndex: 2, pointerEvents: 'none',
+            background: 'linear-gradient(to bottom, transparent, rgba(0,0,0,0.97))',
+          }} />
+
+          {/* Close */}
+          <button
+            onClick={onClose}
+            style={{
+              position: 'absolute', top: '1.5rem', right: '1.5rem', zIndex: 10,
+              background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)',
+              cursor: 'pointer',
+              color: 'rgba(255,255,255,0.8)', fontSize: '1.1rem', lineHeight: 1,
+              padding: '0.4rem 0.7rem', borderRadius: '8px',
+              transition: 'background 0.2s, color 0.2s',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.2)'; e.currentTarget.style.color = '#fff' }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; e.currentTarget.style.color = 'rgba(255,255,255,0.8)' }}
+            aria-label="Close"
+          >✕</button>
+
+          {/* Page content */}
+          <div
+            style={{
+              position: 'relative', zIndex: 3, height: '100%',
+              display: 'flex', flexDirection: 'column',
+              padding: isMobile ? '4.5rem 1.25rem 2rem 1.25rem' : '3.5rem 5% 2rem 5%',
+              opacity: contentIn ? 1 : 0,
+              transform: contentIn ? 'translateY(0)' : 'translateY(36px)',
+              transition: 'opacity 0.55s ease 0.2s, transform 0.55s ease 0.2s',
+              overflowY: 'auto',
+              boxSizing: 'border-box',
+            }}
+          >
+            {/* Header */}
+            <div style={{
+              display: 'flex',
+              flexDirection: isMobile ? 'column' : 'row',
+              justifyContent: 'space-between',
+              alignItems: isMobile ? 'flex-start' : 'flex-start',
+              gap: isMobile ? '0.5rem' : 0,
+              marginBottom: isMobile ? '1.75rem' : '2.75rem',
+            }}>
+              <h2 style={{
+                fontFamily: FONT, fontWeight: 700,
+                fontSize: isMobile ? '1.4rem' : 'clamp(1.6rem, 2.8vw, 2.1rem)',
+                color: '#ffffff', margin: 0, lineHeight: 1.2,
+                textAlign: isMobile ? 'center' : 'left',
+                width: isMobile ? '100%' : undefined,
+              }}>
+                Let's bring your home to life.
+              </h2>
+              {!isMobile && (
+                <p style={{
+                  fontFamily: FONT, fontWeight: 300,
+                  fontSize: '0.875rem', color: 'rgba(255,255,255,0.75)',
+                  maxWidth: '360px', textAlign: 'right', lineHeight: 1.75, margin: 0,
+                }}>
+                  Your home transformation begins with a conversation. Start by filling out the form and telling us about your ideas, your needs, and your vision.
+                </p>
+              )}
+              {isMobile && (
+                <p style={{
+                  fontFamily: FONT, fontWeight: 300,
+                  fontSize: '0.8rem', color: 'rgba(255,255,255,0.65)',
+                  lineHeight: 1.6, margin: 0, textAlign: 'center', width: '100%',
+                }}>
+                  Fill out the form and we'll get in touch.
+                </p>
+              )}
+            </div>
+
+            {/* Main content */}
+            {isMobile ? (
+              /* Mobile: single column form */
+              <form onSubmit={e => e.preventDefault()} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', flex: 1 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                  <Field label="First Name*" type="text" />
+                  <Field label="Last Name*" type="text" />
+                </div>
+                <Field label="Email*" type="email" />
+                <Field label="Phone*" type="tel" />
+                <Field label="Address*" type="text" />
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                  <Field label="Zip/Postal Code*" type="text" />
+                  <SelectField label="Budget Range" options={BUDGET_OPTIONS} />
+                </div>
+                <TextareaField label="Messages / Notes*" />
+                <BookNowButton />
+                <p style={{
+                  fontFamily: FONT, fontWeight: 300,
+                  fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)',
+                  textAlign: 'center', margin: 0, width: '100%',
+                }}>
+                  Please expect a call after filling out this form.
+                </p>
+              </form>
+            ) : (
+              /* Desktop: two column grid */
+              <>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4rem', alignItems: 'stretch', flex: 1 }}>
+                  <form onSubmit={e => e.preventDefault()} style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+                    <Row>
+                      <Field label="First Name*" type="text" />
+                      <Field label="Last Name*" type="text" />
+                    </Row>
+                    <Row>
+                      <Field label="Email*" type="email" />
+                      <Field label="Phone*" type="tel" />
+                    </Row>
+                    <div style={{ marginBottom: '2.25rem' }}>
+                      <Field label="Address*" type="text" />
+                    </div>
+                    <Row>
+                      <Field label="Zip/Postal Code*" type="text" />
+                      <SelectField label="Budget Range" options={BUDGET_OPTIONS} />
+                    </Row>
+                    <div style={{ marginBottom: '2.75rem' }}>
+                      <TextareaField label="Messages /Notes*" />
+                    </div>
+                    <div style={{ marginTop: 'auto' }}>
+                      <BookNowButton />
+                    </div>
+                  </form>
+
+                  <div style={{
+                    borderRadius: '14px', overflow: 'hidden',
+                    boxShadow: '0 8px 40px rgba(0,0,0,0.5)',
+                    height: '480px',
+                  }}>
+                    <video
+                      autoPlay muted loop playsInline
+                      style={{ width: '100%', height: '100%', display: 'block', objectFit: 'cover', objectPosition: 'center center' }}
+                      src="/form-welcome.mp4"
+                    />
+                  </div>
+                </div>
+
+                <p style={{
+                  fontFamily: FONT, fontWeight: 300,
+                  fontSize: '0.8rem', color: 'rgba(255,255,255,0.45)',
+                  textAlign: 'right', marginTop: '0.75rem', marginBottom: 0,
+                }}>
+                  Please expect a call after filling out this form.
+                </p>
+              </>
+            )}
           </div>
         </div>
-
-        <p style={{
-          fontFamily: FONT, fontWeight: 300,
-          fontSize: '0.8rem', color: 'rgba(255,255,255,0.45)',
-          textAlign: 'right', marginTop: '0.75rem', marginBottom: 0,
-        }}>
-          Please expect a call after filling out this form.
-        </p>
-      </div>
-    </div>
+      )}
+    </>
   )
 }
 

@@ -64,3 +64,9 @@ body {
 #root {
   min-height: 100vh;
 }
+
+@media (pointer: coarse) {
+  * {
+    text-align: center !important;
+  }
+}
