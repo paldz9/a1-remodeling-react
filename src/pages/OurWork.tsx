@@ -77,7 +77,7 @@ export default function OurWork() {
 
   const listTranslate = Math.min(scrollY, listOverflow)
   const footerProgress = Math.min(Math.max((scrollY - listOverflow) / window.innerHeight, 0), 1)
-  const footerVisible = footerProgress > 0.010
+  const footerVisible = footerProgress > 0.01
   const footerEntered = footerProgress > 0.5
 
   return (
