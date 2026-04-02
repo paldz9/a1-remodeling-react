@@ -15,7 +15,6 @@ dist-ssr
 # Large video files only — images are needed by the site
 public/*.mp4
 public/*.mov
-public/Slide/
 
 # Editor directories and files
 .vscode/*
