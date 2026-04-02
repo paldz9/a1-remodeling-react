@@ -12,9 +12,6 @@ dist
 dist-ssr
 *.local
 
-# Large video files only — images are needed by the site
-public/*.mp4
-public/*.mov
 
 # Editor directories and files
 .vscode/*
