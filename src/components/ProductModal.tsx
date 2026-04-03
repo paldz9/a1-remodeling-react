@@ -14,6 +14,13 @@ interface Props {
 
 export default function ProductModal({ item, onClose }: Props) {
   const [visible, setVisible] = useState(false)
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768)
+
+  useEffect(() => {
+    const onResize = () => setIsMobile(window.innerWidth < 768)
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
+  }, [])
 
   useEffect(() => {
     if (item) {
@@ -36,6 +43,124 @@ export default function ProductModal({ item, onClose }: Props) {
 
   const textShadow = '0 2px 20px rgba(0,0,0,1), 0 1px 6px rgba(0,0,0,0.9)'
 
+  /* ── Mobile layout ─────────────────────────────────────────── */
+  if (isMobile) {
+    return (
+      <div
+        onClick={onClose}
+        style={{
+          position: 'fixed',
+          inset: 0,
+          zIndex: 200,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: 'rgba(0,0,0,0.65)',
+          backdropFilter: 'blur(10px)',
+          WebkitBackdropFilter: 'blur(10px)',
+          padding: '1.25rem',
+          opacity: visible ? 1 : 0,
+          transition: 'opacity 0.35s ease',
+        }}
+      >
+        <div
+          onClick={e => e.stopPropagation()}
+          style={{
+            width: '100%',
+            maxWidth: 420,
+            borderRadius: '20px',
+            overflow: 'hidden',
+            boxShadow: '0 30px 80px rgba(0,0,0,0.9)',
+            display: 'flex',
+            flexDirection: 'column',
+            transform: visible ? 'translateY(0)' : 'translateY(28px)',
+            transition: 'transform 0.42s cubic-bezier(0.16,1,0.3,1)',
+          }}
+        >
+          {/* Top — image with gradient fade to black at bottom */}
+          <div style={{ position: 'relative', width: '100%', aspectRatio: '4/3', flexShrink: 0 }}>
+            <img
+              src={item.image}
+              alt={item.title}
+              style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+            />
+            {/* Gradient: transparent top → black bottom */}
+            <div style={{
+              position: 'absolute',
+              inset: 0,
+              background: 'linear-gradient(to bottom, transparent 40%, #000000 100%)',
+            }} />
+            {/* Close button */}
+            <button
+              onClick={onClose}
+              style={{
+                position: 'absolute',
+                top: '0.9rem',
+                right: '0.9rem',
+                background: 'rgba(0,0,0,0.4)',
+                border: '1px solid rgba(255,255,255,0.2)',
+                borderRadius: '50%',
+                width: 34,
+                height: 34,
+                cursor: 'pointer',
+                color: '#fff',
+                fontSize: '0.85rem',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                backdropFilter: 'blur(6px)',
+              }}
+            >✕</button>
+          </div>
+
+          {/* Bottom — solid black, text */}
+          <div style={{
+            backgroundColor: '#000000',
+            padding: '1.25rem 1.5rem 1.75rem',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '0.5rem',
+          }}>
+            <h2 style={{
+              fontFamily: "'helvetica-lt-pro', 'Helvetica Neue', Helvetica, Arial, sans-serif",
+              fontWeight: 900,
+              fontSize: 'clamp(1.6rem, 8vw, 2.2rem)',
+              lineHeight: 1.0,
+              letterSpacing: '-0.02em',
+              color: '#ffffff',
+              margin: 0,
+              textTransform: 'uppercase',
+            }}>
+              {item.title}
+            </h2>
+            <p style={{
+              fontFamily: "'Poppins', sans-serif",
+              fontWeight: 700,
+              fontSize: '0.7rem',
+              letterSpacing: '0.2em',
+              textTransform: 'uppercase',
+              color: '#ffffff',
+              margin: 0,
+            }}>
+              {item.warranty}
+            </p>
+            <p style={{
+              fontFamily: "'Poppins', sans-serif",
+              fontWeight: 400,
+              fontSize: '0.82rem',
+              color: 'rgba(255,255,255,0.75)',
+              lineHeight: 1.75,
+              margin: '0.25rem 0 0',
+            }}>
+              {item.info}
+            </p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  /* ── Desktop layout (unchanged) ────────────────────────────── */
   return (
     <div
       onClick={onClose}
@@ -82,7 +207,7 @@ export default function ProductModal({ item, onClose }: Props) {
           }}
         />
 
-        {/* Gradient overlay: light at top-center, heavy at bottom */}
+        {/* Gradient overlay */}
         <div style={{
           position: 'absolute',
           inset: 0,
@@ -121,17 +246,14 @@ export default function ProductModal({ item, onClose }: Props) {
           }}
         >✕</button>
 
-        {/* ── Two-column text layer (image/gradient untouched behind) ── */}
+        {/* Two-column text layer */}
         <div style={{
           position: 'absolute',
           inset: 0,
           zIndex: 5,
           display: 'flex',
         }}>
-          {/* Left column — intentionally blank */}
           <div style={{ flex: '0 0 38%' }} />
-
-          {/* Right column — all text */}
           <div style={{
             flex: 1,
             display: 'flex',
@@ -139,7 +261,6 @@ export default function ProductModal({ item, onClose }: Props) {
             justifyContent: 'space-between',
             padding: 'clamp(2rem, 5vh, 4rem) clamp(1.5rem, 3vw, 2.5rem)',
           }}>
-            {/* Title block — top */}
             <div>
               <h2 style={{
                 fontFamily: "'helvetica-lt-pro', 'Helvetica Neue', Helvetica, Arial, sans-serif",
@@ -153,8 +274,6 @@ export default function ProductModal({ item, onClose }: Props) {
               }}>
                 {item.title}
               </h2>
-
-              {/* Underline */}
               <div style={{
                 height: 2,
                 background: '#ffffff',
@@ -162,8 +281,6 @@ export default function ProductModal({ item, onClose }: Props) {
                 marginBottom: 'clamp(0.55rem, 1.3vh, 0.9rem)',
                 boxShadow: textShadow,
               }} />
-
-              {/* Warranty subtitle */}
               <p style={{
                 fontFamily: "'Poppins', sans-serif",
                 fontWeight: 700,
@@ -177,8 +294,6 @@ export default function ProductModal({ item, onClose }: Props) {
                 {item.warranty}
               </p>
             </div>
-
-            {/* Info — bottom */}
             <p style={{
               fontFamily: "'Poppins', sans-serif",
               fontWeight: 400,

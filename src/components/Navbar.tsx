@@ -191,11 +191,6 @@ export default function Navbar({
     { label: 'Contact',  Icon: Phone,   action: onContact },
   ]
 
-  const pillBg    = inverted ? '#111111' : '#ffffff'
-  const pillBdr   = inverted ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.09)'
-  const iconColor = inverted ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.42)'
-  const iconActive = inverted ? '#ffffff' : '#111111'
-  const iconHover  = inverted ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.07)'
 
   return (
     <>
@@ -306,31 +301,19 @@ export default function Navbar({
         </div>
       </header>
 
-      {/* ── Mobile pill nav (top) ── */}
-      <div
-        className="md:hidden fixed top-0 left-0 right-0 z-50 flex justify-center"
+      {/* ── Mobile nav bar (top, full-width, desktop style) ── */}
+      <header
+        className="md:hidden fixed top-0 left-0 right-0 z-50"
         style={{
-          padding: '10px 16px',
+          backgroundColor: bg,
+          borderBottom: bare ? 'none' : `1px solid ${border}`,
           transform: (mobileHidden || bare) ? 'translateY(-110%)' : 'translateY(0)',
           opacity: visible && !bare ? 1 : 0,
-          transition: 'transform 0.38s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.5s ease',
+          transition: 'transform 0.38s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.5s ease, background-color 0.5s ease, border-color 0.5s ease',
           pointerEvents: visible && !bare ? 'auto' : 'none',
         }}
       >
-        <nav
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            backgroundColor: pillBg,
-            borderRadius: '999px',
-            boxShadow: inverted
-              ? '0 4px 24px rgba(0,0,0,0.5)'
-              : '0 4px 24px rgba(0,0,0,0.13)',
-            border: `1px solid ${pillBdr}`,
-            padding: '4px 4px',
-            transition: 'background-color 0.5s ease, border-color 0.5s ease, box-shadow 0.5s ease',
-          }}
-        >
+        <div style={{ height: '64px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.25rem', padding: '0 12px' }}>
           {mobileNavItems.map(({ label, Icon, action }) => (
             <button
               key={label}
@@ -339,34 +322,28 @@ export default function Navbar({
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
-                gap: '2px',
-                padding: '7px 11px',
-                borderRadius: '999px',
+                gap: '3px',
+                padding: '6px 10px',
+                borderRadius: '8px',
                 backgroundColor: 'transparent',
                 border: 'none',
                 cursor: 'pointer',
-                color: iconColor,
+                color: muted,
                 transition: 'color 0.25s ease, background-color 0.2s ease',
-                minWidth: '50px',
+                flex: 1,
               }}
               onMouseEnter={e => {
-                e.currentTarget.style.backgroundColor = iconHover
-                e.currentTarget.style.color = iconActive
+                e.currentTarget.style.color = text
               }}
               onMouseLeave={e => {
-                e.currentTarget.style.backgroundColor = 'transparent'
-                e.currentTarget.style.color = iconColor
+                e.currentTarget.style.color = muted
               }}
               onTouchStart={e => {
-                e.currentTarget.style.backgroundColor = iconHover
-                e.currentTarget.style.color = iconActive
+                e.currentTarget.style.color = text
               }}
               onTouchEnd={e => {
                 const el = e.currentTarget
-                setTimeout(() => {
-                  el.style.backgroundColor = 'transparent'
-                  el.style.color = iconColor
-                }, 180)
+                setTimeout(() => { el.style.color = muted }, 180)
               }}
             >
               <Icon size={18} strokeWidth={1.75} />
@@ -376,13 +353,14 @@ export default function Navbar({
                 letterSpacing: '0.05em',
                 textTransform: 'uppercase',
                 lineHeight: 1,
+                fontFamily: 'inherit',
               }}>
                 {label}
               </span>
             </button>
           ))}
-        </nav>
-      </div>
+        </div>
+      </header>
     </>
   )
 }

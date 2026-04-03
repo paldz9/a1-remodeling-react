@@ -25,6 +25,13 @@ type SlotKey = keyof typeof SLOT
 export default function GalleryModal({ item, onClose }: Props) {
   const [activeImg, setActiveImg] = useState(0)
   const [visible, setVisible] = useState(false)
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768)
+
+  useEffect(() => {
+    const onResize = () => setIsMobile(window.innerWidth < 768)
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
+  }, [])
   const panelRef = useRef<HTMLDivElement>(null)
   // Spacing: vertical distance from center image center to slot ±1 center (px)
   const [spacing, setSpacing] = useState(340)
@@ -95,6 +102,158 @@ export default function GalleryModal({ item, onClose }: Props) {
   }, [onClose, item])
 
   if (!item) return null
+
+  /* ── Mobile layout ─────────────────────────────────────────── */
+  if (isMobile) {
+    const total = item.images.length
+    const prev = () => setActiveImg(i => (i - 1 + total) % total)
+    const next = () => setActiveImg(i => (i + 1) % total)
+    return (
+      <div
+        onClick={onClose}
+        style={{
+          position: 'fixed',
+          inset: 0,
+          zIndex: 200,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: 'rgba(0,0,0,0.65)',
+          backdropFilter: 'blur(10px)',
+          WebkitBackdropFilter: 'blur(10px)',
+          padding: '1.25rem',
+          opacity: visible ? 1 : 0,
+          transition: 'opacity 0.35s ease',
+        }}
+      >
+        <div
+          onClick={e => e.stopPropagation()}
+          style={{
+            width: '100%',
+            maxWidth: 420,
+            borderRadius: '20px',
+            overflow: 'hidden',
+            boxShadow: '0 30px 80px rgba(0,0,0,0.9)',
+            display: 'flex',
+            flexDirection: 'column',
+            transform: visible ? 'translateY(0)' : 'translateY(28px)',
+            transition: 'transform 0.42s cubic-bezier(0.16,1,0.3,1)',
+          }}
+        >
+          {/* Top — image with prev/next buttons and gradient */}
+          <div style={{ position: 'relative', width: '100%', aspectRatio: '4/3', flexShrink: 0 }}>
+            <img
+              src={item.images[activeImg]}
+              alt=""
+              style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+            />
+            {/* Gradient: transparent → black */}
+            <div style={{
+              position: 'absolute',
+              inset: 0,
+              background: 'linear-gradient(to bottom, transparent 40%, #000000 100%)',
+            }} />
+
+            {/* Close button */}
+            <button
+              onClick={onClose}
+              style={{
+                position: 'absolute', top: '0.9rem', right: '0.9rem',
+                background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.2)',
+                borderRadius: '50%', width: 34, height: 34, cursor: 'pointer',
+                color: '#fff', fontSize: '0.85rem',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                backdropFilter: 'blur(6px)',
+              }}
+            >✕</button>
+
+            {/* Prev / Next buttons — only if multiple images */}
+            {total > 1 && (
+              <>
+                <button
+                  onClick={prev}
+                  style={{
+                    position: 'absolute', left: '0.75rem', top: '50%',
+                    transform: 'translateY(-50%)',
+                    background: 'rgba(0,0,0,0.45)', border: '1px solid rgba(255,255,255,0.18)',
+                    borderRadius: '50%', width: 36, height: 36, cursor: 'pointer',
+                    color: '#fff', fontSize: '1rem',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    backdropFilter: 'blur(6px)',
+                  }}
+                >‹</button>
+                <button
+                  onClick={next}
+                  style={{
+                    position: 'absolute', right: '0.75rem', top: '50%',
+                    transform: 'translateY(-50%)',
+                    background: 'rgba(0,0,0,0.45)', border: '1px solid rgba(255,255,255,0.18)',
+                    borderRadius: '50%', width: 36, height: 36, cursor: 'pointer',
+                    color: '#fff', fontSize: '1rem',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    backdropFilter: 'blur(6px)',
+                  }}
+                >›</button>
+
+                {/* Dot indicators */}
+                <div style={{
+                  position: 'absolute', bottom: '0.75rem', left: 0, right: 0,
+                  display: 'flex', justifyContent: 'center', gap: '0.4rem',
+                }}>
+                  {item.images.map((_, i) => (
+                    <div
+                      key={i}
+                      onClick={() => setActiveImg(i)}
+                      style={{
+                        width: i === activeImg ? '1.2rem' : '0.35rem',
+                        height: '0.35rem',
+                        borderRadius: '9999px',
+                        backgroundColor: i === activeImg ? '#fff' : 'rgba(255,255,255,0.4)',
+                        transition: 'width 0.3s ease, background-color 0.3s ease',
+                        cursor: 'pointer',
+                      }}
+                    />
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+
+          {/* Bottom — solid black, title + info */}
+          <div style={{
+            backgroundColor: '#000000',
+            padding: '1.25rem 1.5rem 1.75rem',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '0.5rem',
+          }}>
+            <h2 style={{
+              fontFamily: "'helvetica-lt-pro', 'Helvetica Neue', Helvetica, Arial, sans-serif",
+              fontWeight: 900,
+              fontSize: 'clamp(1.6rem, 8vw, 2.2rem)',
+              lineHeight: 1.0,
+              letterSpacing: '-0.02em',
+              color: '#ffffff',
+              margin: 0,
+              textTransform: 'uppercase',
+            }}>
+              {item.title}
+            </h2>
+            <p style={{
+              fontFamily: "'Poppins', sans-serif",
+              fontWeight: 400,
+              fontSize: '0.82rem',
+              color: 'rgba(255,255,255,0.75)',
+              lineHeight: 1.75,
+              margin: '0.25rem 0 0',
+            }}>
+              {item.description}
+            </p>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   const SLOTS = [-2, -1, 0, 1, 2] as const
 

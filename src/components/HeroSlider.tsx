@@ -19,6 +19,7 @@ const SLIDES = [
 
 export default function HeroSlider() {
   const track = [...SLIDES, ...SLIDES]
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768
 
   return (
     <section className="hero-root" style={{ margin: 0, paddingTop: 'calc(4rem + 0.75rem)' }}>
@@ -26,7 +27,7 @@ export default function HeroSlider() {
       {/* Company title */}
       <div style={{ width: '100%' }}>
         <img
-          src="/Company Title_fixed.png"
+          src={isMobile ? '/Company Title_fixed_mobile.png' : '/Company Title_fixed.png'}
           alt="A1 Home Remodeling Inc"
           style={{ width: '100%', height: 'auto', display: 'block' }}
         />
