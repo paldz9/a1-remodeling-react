@@ -197,49 +197,55 @@ HoverSliderImage.displayName = "HoverSliderImage"
 // ─── Mobile scramble title ───────────────────────────────────────────────────
 interface MobileScrambleTitleProps extends React.HTMLAttributes<HTMLParagraphElement> {
   text: string
-  isActive: boolean
 }
 
-export function MobileScrambleTitle({ text, isActive, style, ...props }: MobileScrambleTitleProps) {
+export function MobileScrambleTitle({ text, style, ...props }: MobileScrambleTitleProps) {
   const upper = text.toUpperCase()
+  const words = upper.split(' ')
   const [chars, setChars] = useState<{ ch: string; resolved: boolean }[]>(() =>
-    upper.split('').map(ch => ({ ch, resolved: isActive }))
+    upper.split('').map(ch => ({ ch, resolved: false }))
   )
   const rafRef = useRef<number | null>(null)
-  const wasActive = useRef(isActive)
 
   useEffect(() => {
-    if (isActive && !wasActive.current) {
-      if (rafRef.current) cancelAnimationFrame(rafRef.current)
-      const start = performance.now()
-      const duration = 900
-      const animate = (now: number) => {
-        const progress = Math.min((now - start) / duration, 1)
-        const resolved = Math.floor(progress * upper.length)
-        setChars(upper.split('').map((ch, i) => {
-          if (ch === ' ') return { ch: ' ', resolved: true }
-          if (i < resolved) return { ch, resolved: true }
-          return { ch: CHARS[Math.floor(Math.random() * CHARS.length)], resolved: false }
-        }))
-        if (progress < 1) rafRef.current = requestAnimationFrame(animate)
-        else setChars(upper.split('').map(ch => ({ ch, resolved: true })))
-      }
-      rafRef.current = requestAnimationFrame(animate)
-    } else if (!isActive && wasActive.current) {
-      if (rafRef.current) cancelAnimationFrame(rafRef.current)
-      setChars(upper.split('').map(ch => ({ ch, resolved: false })))
+    const start = performance.now()
+    const duration = 900
+    const animate = (now: number) => {
+      const progress = Math.min((now - start) / duration, 1)
+      const resolved = Math.floor(progress * upper.length)
+      setChars(upper.split('').map((ch, i) => {
+        if (ch === ' ') return { ch: ' ', resolved: true }
+        if (i < resolved) return { ch, resolved: true }
+        return { ch: CHARS[Math.floor(Math.random() * CHARS.length)], resolved: false }
+      }))
+      if (progress < 1) rafRef.current = requestAnimationFrame(animate)
+      else setChars(upper.split('').map(ch => ({ ch, resolved: true })))
     }
-    wasActive.current = isActive
+    rafRef.current = requestAnimationFrame(animate)
     return () => { if (rafRef.current) cancelAnimationFrame(rafRef.current) }
-  }, [isActive, upper])
+  }, [upper])
 
+  // Words wrap naturally at spaces. For words longer than 7 chars, insert a single
+  // soft hyphen (\u00AD) at ~60% so the browser only breaks mid-word there if needed.
+  let charIdx = 0
   return (
-    <p lang="en" style={{ hyphens: 'auto', ...style }} {...props}>
-      {chars.map((c, i) => (
-        <span key={i} style={{ color: c.resolved ? '#111111' : '#bbbbbb', transition: 'color 0.2s ease' }}>
-          {c.ch}
-        </span>
-      ))}
+    <p lang="en" style={{ ...style }} {...props}>
+      {words.map((word, wi) => {
+        const wordChars = chars.slice(charIdx, charIdx + word.length)
+        charIdx += word.length + 1
+        const breakAt = word.length > 7 ? Math.ceil(word.length * 0.6) : -1
+        return (
+          <React.Fragment key={wi}>
+            {wordChars.map((c, ci) => (
+              <React.Fragment key={ci}>
+                <span style={{ color: c.resolved ? '#111111' : '#bbbbbb', transition: 'color 0.2s ease' }}>{c.ch}</span>
+                {ci === breakAt - 1 && '\u00AD'}
+              </React.Fragment>
+            ))}
+            {wi < words.length - 1 && ' '}
+          </React.Fragment>
+        )
+      })}
     </p>
   )
 }

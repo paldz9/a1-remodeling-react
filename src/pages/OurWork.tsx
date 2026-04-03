@@ -32,6 +32,7 @@ export default function OurWork() {
   const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768)
   const [footerInView, setFooterInView] = useState(false)
   const [activeMobileIdx, setActiveMobileIdx] = useState(0)
+  const [swipeDir, setSwipeDir] = useState<'left' | 'right'>('left')
   const touchStartX = useRef(0)
   const touchStartY = useRef(0)
 
@@ -43,8 +44,8 @@ export default function OurWork() {
     const dx = e.changedTouches[0].clientX - touchStartX.current
     const dy = e.changedTouches[0].clientY - touchStartY.current
     if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 50) {
-      if (dx < 0) setActiveMobileIdx(i => Math.min(i + 1, SLIDES.length - 1))
-      else setActiveMobileIdx(i => Math.max(i - 1, 0))
+      if (dx < 0) { setSwipeDir('left'); setActiveMobileIdx(i => (i + 1) % SLIDES.length) }
+      else { setSwipeDir('right'); setActiveMobileIdx(i => (i - 1 + SLIDES.length) % SLIDES.length) }
     }
   }
 
@@ -150,75 +151,71 @@ export default function OurWork() {
       }}>
 
         {isMobile ? (
-          <div
-            style={{ width: '100%', minHeight: '100vh', display: 'flex', flexDirection: 'column', paddingTop: '64px', backgroundColor: '#ffffff' }}
-            onTouchStart={handleTouchStart}
-            onTouchEnd={handleTouchEnd}
-          >
-            {/* Label + counter */}
-            <div style={{ padding: '1.5rem 6% 0.75rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
-              <p style={{ fontFamily: "'Poppins', sans-serif", fontWeight: 400, fontSize: '0.7rem', color: '#999', letterSpacing: '0.15em', textTransform: 'uppercase', margin: 0 }}>Our Work</p>
-              <p style={{ fontFamily: "'Poppins', sans-serif", fontWeight: 300, fontSize: '0.7rem', color: '#aaa', margin: 0 }}>
-                {String(activeMobileIdx + 1).padStart(2, '0')} / {String(SLIDES.length).padStart(2, '0')}
-              </p>
-            </div>
+          <>
+            <style>{`
+              @keyframes slideInFromRight { from { transform: translateX(60px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+              @keyframes slideInFromLeft  { from { transform: translateX(-60px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+            `}</style>
+            <div
+              style={{ width: '100%', minHeight: '100vh', display: 'flex', flexDirection: 'column', paddingTop: '64px', backgroundColor: '#ffffff' }}
+              onTouchStart={handleTouchStart}
+              onTouchEnd={handleTouchEnd}
+            >
+              {/* Label + counter */}
+              <div style={{ padding: '1.5rem 6% 0.75rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
+                <p style={{ fontFamily: "'Poppins', sans-serif", fontWeight: 400, fontSize: '0.7rem', color: '#999', letterSpacing: '0.15em', textTransform: 'uppercase', margin: 0 }}>Our Work</p>
+                <p style={{ fontFamily: "'Poppins', sans-serif", fontWeight: 300, fontSize: '0.7rem', color: '#aaa', margin: 0 }}>
+                  {String(activeMobileIdx + 1).padStart(2, '0')} / {String(SLIDES.length).padStart(2, '0')}
+                </p>
+              </div>
 
-            {/* Sliding row */}
-            <div style={{ width: '100%', overflow: 'hidden', flexShrink: 0 }}>
-              <div style={{
-                display: 'flex',
-                transform: `translateX(${-activeMobileIdx * 100}%)`,
-                transition: 'transform 0.42s cubic-bezier(0.33, 1, 0.68, 1)',
-                willChange: 'transform',
-              }}>
-                {SLIDES.map((slide, i) => (
-                  <div key={i} style={{ minWidth: '100%', flexShrink: 0 }}>
-                    {/* Image */}
-                    <div
-                      style={{ width: '100%', aspectRatio: '4/3', position: 'relative', overflow: 'hidden', cursor: 'pointer' }}
-                      onClick={() => setGalleryItem(slide.gallery)}
-                    >
-                      <img
-                        src={slide.img}
-                        alt={slide.label}
-                        style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-                      />
-                      <div style={{ position: 'absolute', bottom: '1rem', left: 0, right: 0, display: 'flex', justifyContent: 'center' }}>
-                        <span style={{ fontFamily: "'Poppins', sans-serif", fontWeight: 400, fontSize: '0.78rem', color: '#fff', textDecoration: 'underline', letterSpacing: '0.05em', textShadow: '0 1px 6px rgba(0,0,0,0.55)' }}>
-                          Tap to show details
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Title with scramble */}
-                    <div style={{ padding: '1.25rem 6% 2rem', cursor: 'pointer' }} onClick={() => setGalleryItem(slide.gallery)}>
-                      <MobileScrambleTitle
-                        text={slide.label}
-                        isActive={i === activeMobileIdx}
-                        style={{
-                          fontFamily: "'helvetica-lt-pro', 'Helvetica Neue', Helvetica, Arial, sans-serif",
-                          fontWeight: 900,
-                          fontSize: 'clamp(2.8rem, 13vw, 5rem)',
-                          letterSpacing: '-0.02em',
-                          lineHeight: 1.05,
-                          overflowWrap: 'break-word',
-                          textTransform: 'uppercase',
-                          margin: 0,
-                        } as React.CSSProperties}
-                      />
-                    </div>
+              {/* Slide content — key re-mounts on change to trigger animation */}
+              <div
+                key={activeMobileIdx}
+                style={{ animation: `${swipeDir === 'left' ? 'slideInFromRight' : 'slideInFromLeft'} 0.38s cubic-bezier(0.33,1,0.68,1) both`, flex: 1, display: 'flex', flexDirection: 'column' }}
+              >
+                {/* Image */}
+                <div
+                  style={{ width: '100%', aspectRatio: '4/3', position: 'relative', overflow: 'hidden', cursor: 'pointer', flexShrink: 0 }}
+                  onClick={() => setGalleryItem(SLIDES[activeMobileIdx].gallery)}
+                >
+                  <img
+                    src={SLIDES[activeMobileIdx].img}
+                    alt={SLIDES[activeMobileIdx].label}
+                    style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                  />
+                  <div style={{ position: 'absolute', bottom: '1rem', left: 0, right: 0, display: 'flex', justifyContent: 'center' }}>
+                    <span style={{ fontFamily: "'Poppins', sans-serif", fontWeight: 400, fontSize: '0.78rem', color: '#fff', textDecoration: 'underline', letterSpacing: '0.05em', textShadow: '0 1px 6px rgba(0,0,0,0.55)' }}>
+                      Tap to show details
+                    </span>
                   </div>
+                </div>
+
+                {/* Title with scramble */}
+                <div style={{ padding: '1.25rem 6% 2rem', cursor: 'pointer' }} onClick={() => setGalleryItem(SLIDES[activeMobileIdx].gallery)}>
+                  <MobileScrambleTitle
+                    text={SLIDES[activeMobileIdx].label}
+                    style={{
+                      fontFamily: "'helvetica-lt-pro', 'Helvetica Neue', Helvetica, Arial, sans-serif",
+                      fontWeight: 900,
+                      fontSize: 'clamp(2.8rem, 13vw, 5rem)',
+                      letterSpacing: '-0.02em',
+                      lineHeight: 1.05,
+                      textTransform: 'uppercase',
+                      margin: 0,
+                    } as React.CSSProperties}
+                  />
+                </div>
+              </div>
+
+              {/* Swipe dots */}
+              <div style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem', paddingBottom: '2rem', flexShrink: 0 }}>
+                {SLIDES.map((_, i) => (
+                  <div key={i} style={{ width: i === activeMobileIdx ? '1.5rem' : '0.4rem', height: '0.4rem', borderRadius: '9999px', backgroundColor: i === activeMobileIdx ? '#111' : '#ccc', transition: 'width 0.3s ease, background-color 0.3s ease' }} />
                 ))}
               </div>
             </div>
-
-            {/* Swipe dots */}
-            <div style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem', paddingBottom: '2rem', flexShrink: 0 }}>
-              {SLIDES.map((_, i) => (
-                <div key={i} style={{ width: i === activeMobileIdx ? '1.5rem' : '0.4rem', height: '0.4rem', borderRadius: '9999px', backgroundColor: i === activeMobileIdx ? '#111' : '#ccc', transition: 'width 0.3s ease, background-color 0.3s ease' }} />
-              ))}
-            </div>
-          </div>
+          </>
         ) : (
           <HoverSlider style={{ display: 'flex', height: '100%' } as React.CSSProperties}>
 
