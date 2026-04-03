@@ -112,7 +112,7 @@ export default function IntroVideo({ onEnd }: Props) {
           onError={dismiss}
           style={{ width: '100%', height: 'auto', display: 'block' }}
         >
-          <source src="/Intro_Mobile.mp4" type="video/mp4" />
+          <source src={window.innerWidth < 768 ? '/Intro_Mobile.mp4' : '/Intro_title_2.mp4'} type="video/mp4" />
         </video>
       </div>
     </div>
