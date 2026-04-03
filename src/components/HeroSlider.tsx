@@ -21,9 +21,9 @@ export default function HeroSlider() {
   const track = [...SLIDES, ...SLIDES]
 
   return (
-    <section style={{ margin: 0, paddingTop: 'calc(4rem + 0.75rem)' }}>
+    <section className="hero-root" style={{ margin: 0, paddingTop: 'calc(4rem + 0.75rem)' }}>
 
-      {/* width: 100% / height: auto — matches the video exactly at every viewport width */}
+      {/* Company title */}
       <div style={{ width: '100%' }}>
         <img
           src="/Company Title_fixed.png"
@@ -32,6 +32,7 @@ export default function HeroSlider() {
         />
       </div>
 
+      {/* Image strip */}
       <div style={{ overflow: 'hidden', width: '100%', marginTop: '1.5rem', position: 'relative' }}>
         <div
           style={{
@@ -44,6 +45,7 @@ export default function HeroSlider() {
           {track.map((src, i) => (
             <div
               key={i}
+              className="hero-card"
               style={{
                 flexShrink: 0,
                 width: '480px',
@@ -62,7 +64,8 @@ export default function HeroSlider() {
         </div>
       </div>
 
-      <div style={{ padding: '2rem 44% 1rem 7%', fontFamily: "'Poppins', sans-serif" }}>
+      {/* Text */}
+      <div className="hero-text" style={{ padding: '2rem 44% 1rem 7%', fontFamily: "'Poppins', sans-serif" }}>
         <p style={{ marginBottom: '0.5rem', lineHeight: '1.65', fontSize: '0.95rem', fontWeight: 400 }}>
           At <strong style={{ fontWeight: 700 }}>A1 Home Remodeling Inc.,</strong> we believe a home is more than walls and roofs. It is where memories are made and life happens. That is why we treat every project with genuine care, attention, and respect for your vision.
         </p>
@@ -75,6 +78,27 @@ export default function HeroSlider() {
         @keyframes slide-left {
           0%   { transform: translateX(0); }
           100% { transform: translateX(-50%); }
+        }
+
+        @media (max-width: 767px) {
+          .hero-root {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            padding-top: 60px;
+          }
+          .hero-card {
+            width: 220px !important;
+            height: 150px !important;
+          }
+          .hero-text {
+            flex: 1;
+            display: flex !important;
+            flex-direction: column;
+            justify-content: center;
+            padding: 1.25rem 6% !important;
+            text-align: center;
+          }
         }
       `}</style>
     </section>

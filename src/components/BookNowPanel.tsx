@@ -96,6 +96,7 @@ interface Props {
   open: boolean
   onClose: () => void
   onOpen?: () => void
+  hideButton?: boolean
 }
 
 const BUDGET_OPTIONS = [
@@ -109,7 +110,7 @@ const BUDGET_OPTIONS = [
 
 const FONT = "'Poppins', sans-serif"
 
-export default function BookNowPanel({ open, onClose, onOpen }: Props) {
+export default function BookNowPanel({ open, onClose, onOpen, hideButton = false }: Props) {
   const [visible, setVisible] = useState(false)
   const [contentIn, setContentIn] = useState(false)
   const [isMobile, setIsMobile] = useState(() => window.matchMedia('(pointer: coarse)').matches)
@@ -135,11 +136,11 @@ export default function BookNowPanel({ open, onClose, onOpen }: Props) {
 
   return (
     <>
-      {/* Floating FAB — mobile only, hidden when panel is open */}
-      {onOpen && !open && (
+      {/* Floating FAB — mobile only, hidden when panel is open or footer is in view */}
+      {onOpen && !open && !hideButton && (
         <button
           onClick={onOpen}
-          className="md:hidden"
+          className="md:hidden flex items-center justify-center"
           style={{
             position: 'fixed',
             bottom: '1.5rem',
@@ -151,9 +152,6 @@ export default function BookNowPanel({ open, onClose, onOpen }: Props) {
             backgroundColor: '#111111',
             border: 'none',
             cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
             boxShadow: '0 4px 16px rgba(0,0,0,0.35)',
           }}
           aria-label="Book Now"

@@ -1,6 +1,7 @@
 export default function ContactBar() {
   return (
     <div
+      className="hidden md:flex"
       style={{
         position: 'fixed',
         bottom: 0,
@@ -8,7 +9,6 @@ export default function ContactBar() {
         right: 0,
         zIndex: 10,
         backgroundColor: '#ffffff',
-        display: 'flex',
         alignItems: 'center',
         gap: '3rem',
         padding: '1rem 7%',

@@ -1,4 +1,4 @@
-import React, { useCallback, useLayoutEffect, useRef, useState } from "react"
+import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react"
 import { type HTMLMotionProps, motion } from "motion/react"
 import { cn } from "@/lib/utils"
 
@@ -193,3 +193,53 @@ export const HoverSliderImage = React.forwardRef<HTMLImageElement, HTMLMotionPro
   }
 )
 HoverSliderImage.displayName = "HoverSliderImage"
+
+// ─── Mobile scramble title ───────────────────────────────────────────────────
+interface MobileScrambleTitleProps extends React.HTMLAttributes<HTMLParagraphElement> {
+  text: string
+  isActive: boolean
+}
+
+export function MobileScrambleTitle({ text, isActive, style, ...props }: MobileScrambleTitleProps) {
+  const upper = text.toUpperCase()
+  const [chars, setChars] = useState<{ ch: string; resolved: boolean }[]>(() =>
+    upper.split('').map(ch => ({ ch, resolved: isActive }))
+  )
+  const rafRef = useRef<number | null>(null)
+  const wasActive = useRef(isActive)
+
+  useEffect(() => {
+    if (isActive && !wasActive.current) {
+      if (rafRef.current) cancelAnimationFrame(rafRef.current)
+      const start = performance.now()
+      const duration = 900
+      const animate = (now: number) => {
+        const progress = Math.min((now - start) / duration, 1)
+        const resolved = Math.floor(progress * upper.length)
+        setChars(upper.split('').map((ch, i) => {
+          if (ch === ' ') return { ch: ' ', resolved: true }
+          if (i < resolved) return { ch, resolved: true }
+          return { ch: CHARS[Math.floor(Math.random() * CHARS.length)], resolved: false }
+        }))
+        if (progress < 1) rafRef.current = requestAnimationFrame(animate)
+        else setChars(upper.split('').map(ch => ({ ch, resolved: true })))
+      }
+      rafRef.current = requestAnimationFrame(animate)
+    } else if (!isActive && wasActive.current) {
+      if (rafRef.current) cancelAnimationFrame(rafRef.current)
+      setChars(upper.split('').map(ch => ({ ch, resolved: false })))
+    }
+    wasActive.current = isActive
+    return () => { if (rafRef.current) cancelAnimationFrame(rafRef.current) }
+  }, [isActive, upper])
+
+  return (
+    <p lang="en" style={{ hyphens: 'auto', ...style }} {...props}>
+      {chars.map((c, i) => (
+        <span key={i} style={{ color: c.resolved ? '#111111' : '#bbbbbb', transition: 'color 0.2s ease' }}>
+          {c.ch}
+        </span>
+      ))}
+    </p>
+  )
+}

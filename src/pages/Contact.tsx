@@ -4,7 +4,7 @@ import SiteFooter from '../components/SiteFooter'
 export default function Contact() {
   const navigate = useNavigate()
   return (
-    <div style={{ width: '100vw', height: '100vh' }}>
+    <div style={{ width: '100vw', minHeight: '100vh' }}>
       <SiteFooter
         entered={true}
         onHome={() => navigate('/')}
